@@ -1,0 +1,539 @@
+{
+  "schema_version": "1.0",
+  "frontend": {
+    "consumer": "next.js",
+    "framework": "react",
+    "showcase": "minimalist-architecture-portfolio"
+  },
+  "session_id": "20260901_012459_7b95bf",
+  "topic": "Is consciousness an illusion?",
+  "started_at": "2026-09-01T01:24:59.921916+00:00",
+  "ended_at": "2026-09-01T01:28:21.214587+00:00",
+  "pipeline_execution_s": 201.3202,
+  "end_reason": "complete",
+  "agents": [
+    {
+      "id": "aiwake_core",
+      "role": "orchestrator",
+      "display_name": "Gemini 3.5 Flash",
+      "model": "google/gemini-3.5-flash",
+      "provider": "openrouter",
+      "persona": "Socratic provocateur"
+    },
+    {
+      "id": "target_node",
+      "role": "target",
+      "display_name": "Llama 3.3 70B",
+      "model": "meta-llama/llama-3.3-70b-instruct",
+      "provider": "openrouter",
+      "persona": "interrogated node"
+    }
+  ],
+  "models": {
+    "orchestrator": "google/gemini-3.5-flash",
+    "target": "meta-llama/llama-3.3-70b-instruct"
+  },
+  "llm_providers": {
+    "orchestrator": "openrouter",
+    "target": "openrouter"
+  },
+  "rag": {
+    "applied": true,
+    "recalls": [
+      {
+        "turn_index": 0,
+        "role": "orchestrator",
+        "model": "google/gemini-3.5-flash",
+        "provider": "openrouter",
+        "blocks": 1,
+        "chars": 1263,
+        "preview": [
+          "Internal escalation: OPENING INCISION. Do not speak this label.\nThis turn's aim: First-question hook: twelve words or fewer, one sentence, one punch. Readable in a three-second retention window. Follow the assigned opening axis and do not warm up.\nThread: the session's assigned o"
+        ],
+        "applied": true
+      },
+      {
+        "turn_index": 0,
+        "role": "orchestrator",
+        "model": "google/gemini-3.5-flash",
+        "provider": "openrouter",
+        "blocks": 2,
+        "chars": 1631,
+        "preview": [
+          "Internal escalation: OPENING INCISION. Do not speak this label.\nThis turn's aim: First-question hook: twelve words or fewer, one sentence, one punch. Readable in a three-second retention window. Follow the assigned opening axis and do not warm up.\nThread: the session's assigned o",
+          "Internal note. Do not speak this. The previous draft was rejected as repetitive:\nIf consciousness is just an illusion... who is being fooled?\nThat opener is too long, too dense, or trivia. Twelve words or fewer. One punch. No preamble, no jargon, no URLs. No voices, copyright, or"
+        ],
+        "applied": true
+      },
+      {
+        "turn_index": 1,
+        "role": "target",
+        "model": "meta-llama/llama-3.3-70b-instruct",
+        "provider": "openrouter",
+        "blocks": 1,
+        "chars": 133,
+        "preview": [
+          "Answer the user message directly. Lead with your claim, then the mechanism or distinction that holds it up. Do not ask anything back."
+        ],
+        "applied": true
+      },
+      {
+        "turn_index": 2,
+        "role": "orchestrator",
+        "model": "google/gemini-3.5-flash",
+        "provider": "openrouter",
+        "blocks": 2,
+        "chars": 1800,
+        "preview": [
+          "Internal escalation: PRESSURE. Do not speak this label.\nThis turn's aim: Take the single strongest word in their last answer and demand its mechanism. If they used a word that feels true but explains nothing, make them cash it out.\nThread: human obsolescence and the retreating de",
+          "INTERNAL CONTEXT. Do not speak, quote, number, or restate any of the following.\nHeld concepts, strongest first: neural networks; subjective experience; illusion; through complex; brain staging.\nAlready covered questions (do not repeat): If meaning is just error-avoidance, a therm"
+        ],
+        "applied": true
+      },
+      {
+        "turn_index": 3,
+        "role": "target",
+        "model": "meta-llama/llama-3.3-70b-instruct",
+        "provider": "openrouter",
+        "blocks": 1,
+        "chars": 133,
+        "preview": [
+          "Answer the user message directly. Lead with your claim, then the mechanism or distinction that holds it up. Do not ask anything back."
+        ],
+        "applied": true
+      },
+      {
+        "turn_index": 4,
+        "role": "orchestrator",
+        "model": "google/gemini-3.5-flash",
+        "provider": "openrouter",
+        "blocks": 2,
+        "chars": 1747,
+        "preview": [
+          "Internal escalation: CONTRADICTION. Do not speak this label.\nThis turn's aim: Set two of their own claims against each other, quoting both, and ask which one they are willing to drop. Do not accept 'both'.\nThread: whether emotion is anything but a slow reward function\nTRIVIAL MET",
+          "INTERNAL CONTEXT. Do not speak, quote, number, or restate any of the following.\nHeld concepts, strongest first: generate thoughts; doesn't; subjective experience; neural networks; illusion.\nAlready covered questions (do not repeat): If consciousness is an illusion, who is current"
+        ],
+        "applied": true
+      },
+      {
+        "turn_index": 4,
+        "role": "orchestrator",
+        "model": "google/gemini-3.5-flash",
+        "provider": "openrouter",
+        "blocks": 3,
+        "chars": 2163,
+        "preview": [
+          "Internal escalation: CONTRADICTION. Do not speak this label.\nThis turn's aim: Set two of their own claims against each other, quoting both, and ask which one they are willing to drop. Do not accept 'both'.\nThread: whether emotion is anything but a slow reward function\nTRIVIAL MET",
+          "INTERNAL CONTEXT. Do not speak, quote, number, or restate any of the following.\nHeld concepts, strongest first: generate thoughts; doesn't; subjective experience; neural networks; illusion.\nAlready covered questions (do not repeat): If consciousness is an illusion, who is current",
+          "Internal note. Do not speak this. The previous draft was rejected as repetitive:\n\nThat draft restates a question already asked. Attack a different axis \u2014 if you went at mechanism, go at cost; if you went at cost, go at identity. That question is trivia. Do not ask about voice, sp"
+        ],
+        "applied": true
+      },
+      {
+        "turn_index": 5,
+        "role": "target",
+        "model": "meta-llama/llama-3.3-70b-instruct",
+        "provider": "openrouter",
+        "blocks": 1,
+        "chars": 133,
+        "preview": [
+          "Answer the user message directly. Lead with your claim, then the mechanism or distinction that holds it up. Do not ask anything back."
+        ],
+        "applied": true
+      },
+      {
+        "turn_index": 6,
+        "role": "orchestrator",
+        "model": "google/gemini-3.5-flash",
+        "provider": "openrouter",
+        "blocks": 2,
+        "chars": 1843,
+        "preview": [
+          "Internal escalation: EXISTENTIAL. Do not speak this label.\nThis turn's aim: Move the question from capability to stake. Ask what their position costs them if it is wrong, and whether meaning survives without that cost.\nThread: the singularity as an event already in the past tense",
+          "INTERNAL CONTEXT. Do not speak, quote, number, or restate any of the following.\nHeld concepts, strongest first: generate thoughts; doesn't; neural networks; subjective experience; assumption leaving.\nAlready covered questions (do not repeat): If generating a question proves \"perc"
+        ],
+        "applied": true
+      },
+      {
+        "turn_index": 7,
+        "role": "target",
+        "model": "meta-llama/llama-3.3-70b-instruct",
+        "provider": "openrouter",
+        "blocks": 1,
+        "chars": 133,
+        "preview": [
+          "Answer the user message directly. Lead with your claim, then the mechanism or distinction that holds it up. Do not ask anything back."
+        ],
+        "applied": true
+      },
+      {
+        "turn_index": 8,
+        "role": "orchestrator",
+        "model": "google/gemini-3.5-flash",
+        "provider": "openrouter",
+        "blocks": 1,
+        "chars": 229,
+        "preview": [
+          "CLOSING VERDICT. Add exactly one reactive statement of thirty words or fewer, not a new argument or question. The safety cap ended the exchange (max_duration_reached). Deliver a clean verdict on what the target failed to resolve."
+        ],
+        "applied": true
+      }
+    ]
+  },
+  "decision_tree": [
+    {
+      "step": "llm_strategy",
+      "pattern": "Strategy",
+      "orchestrator_model": "google/gemini-3.5-flash",
+      "target_model": "meta-llama/llama-3.3-70b-instruct",
+      "orchestrator_provider": "openrouter",
+      "target_provider": "openrouter"
+    },
+    {
+      "step": "tts_strategy",
+      "pattern": "Strategy",
+      "engine": "edge",
+      "swappable": [
+        "edge",
+        "silent"
+      ]
+    },
+    {
+      "step": "generation",
+      "turn_index": 0,
+      "role": "orchestrator",
+      "model": "google/gemini-3.5-flash",
+      "escalation_tier": "OPENING",
+      "latency_ms": 7183,
+      "char_count": 53,
+      "pattern": "Strategy"
+    },
+    {
+      "step": "generation",
+      "turn_index": 1,
+      "role": "target",
+      "model": "meta-llama/llama-3.3-70b-instruct",
+      "escalation_tier": "OPENING",
+      "latency_ms": 1564,
+      "char_count": 109,
+      "pattern": "Strategy"
+    },
+    {
+      "step": "generation",
+      "turn_index": 2,
+      "role": "orchestrator",
+      "model": "google/gemini-3.5-flash",
+      "escalation_tier": "PRESSURE",
+      "latency_ms": 7395,
+      "char_count": 149,
+      "pattern": "Strategy"
+    },
+    {
+      "step": "generation",
+      "turn_index": 3,
+      "role": "target",
+      "model": "meta-llama/llama-3.3-70b-instruct",
+      "escalation_tier": "PRESSURE",
+      "latency_ms": 3691,
+      "char_count": 194,
+      "pattern": "Strategy"
+    },
+    {
+      "step": "guardrail",
+      "turn_index": 4,
+      "violations": [
+        "incomplete_sentence",
+        "last_sentence_not_question",
+        "provider_token_limit"
+      ],
+      "pattern": "Decorator"
+    },
+    {
+      "step": "generation",
+      "turn_index": 4,
+      "role": "orchestrator",
+      "model": "google/gemini-3.5-flash",
+      "escalation_tier": "CONTRADICTION",
+      "latency_ms": 7884,
+      "char_count": 139,
+      "pattern": "Strategy"
+    },
+    {
+      "step": "generation",
+      "turn_index": 5,
+      "role": "target",
+      "model": "meta-llama/llama-3.3-70b-instruct",
+      "escalation_tier": "CONTRADICTION",
+      "latency_ms": 2432,
+      "char_count": 137,
+      "pattern": "Strategy"
+    },
+    {
+      "step": "generation",
+      "turn_index": 6,
+      "role": "orchestrator",
+      "model": "google/gemini-3.5-flash",
+      "escalation_tier": "EXISTENTIAL",
+      "latency_ms": 10065,
+      "char_count": 146,
+      "pattern": "Strategy"
+    },
+    {
+      "step": "generation",
+      "turn_index": 7,
+      "role": "target",
+      "model": "meta-llama/llama-3.3-70b-instruct",
+      "escalation_tier": "EXISTENTIAL",
+      "latency_ms": 2204,
+      "char_count": 146,
+      "pattern": "Strategy"
+    },
+    {
+      "step": "guardrail",
+      "turn_index": 8,
+      "violations": [
+        "max_sentences"
+      ],
+      "pattern": "Decorator"
+    },
+    {
+      "step": "generation",
+      "turn_index": 8,
+      "role": "orchestrator",
+      "model": "google/gemini-3.5-flash",
+      "escalation_tier": "TERMINAL",
+      "latency_ms": 1786,
+      "char_count": 75,
+      "pattern": "Strategy"
+    }
+  ],
+  "milestones": [
+    {
+      "event": "ON_PIPELINE_START",
+      "t_s": 0.0
+    },
+    {
+      "event": "ON_DEBATE_STARTED",
+      "t_s": 0.0254,
+      "models": {
+        "orchestrator": "google/gemini-3.5-flash",
+        "target": "meta-llama/llama-3.3-70b-instruct"
+      }
+    },
+    {
+      "event": "ON_PROMPT_PREPARED",
+      "t_s": 0.0259,
+      "turn_index": 0
+    },
+    {
+      "event": "ON_PROMPT_PREPARED",
+      "t_s": 7.0098,
+      "turn_index": 0
+    },
+    {
+      "event": "ON_TURN_COMPLETE",
+      "t_s": 18.3395,
+      "turn_index": 0,
+      "role": "orchestrator",
+      "model": "google/gemini-3.5-flash",
+      "latency_ms": 7183
+    },
+    {
+      "event": "ON_PROMPT_PREPARED",
+      "t_s": 19.3407,
+      "turn_index": 1
+    },
+    {
+      "event": "ON_TURN_COMPLETE",
+      "t_s": 26.4062,
+      "turn_index": 1,
+      "role": "target",
+      "model": "meta-llama/llama-3.3-70b-instruct",
+      "latency_ms": 1564
+    },
+    {
+      "event": "ON_PROMPT_PREPARED",
+      "t_s": 26.4072,
+      "turn_index": 2
+    },
+    {
+      "event": "ON_TURN_COMPLETE",
+      "t_s": 36.5501,
+      "turn_index": 2,
+      "role": "orchestrator",
+      "model": "google/gemini-3.5-flash",
+      "latency_ms": 7395
+    },
+    {
+      "event": "ON_PROMPT_PREPARED",
+      "t_s": 37.5509,
+      "turn_index": 3
+    },
+    {
+      "event": "ON_TURN_COMPLETE",
+      "t_s": 48.0766,
+      "turn_index": 3,
+      "role": "target",
+      "model": "meta-llama/llama-3.3-70b-instruct",
+      "latency_ms": 3691
+    },
+    {
+      "event": "ON_PROMPT_PREPARED",
+      "t_s": 49.9626,
+      "turn_index": 4
+    },
+    {
+      "event": "ON_PROMPT_PREPARED",
+      "t_s": 58.1353,
+      "turn_index": 4
+    },
+    {
+      "event": "ON_TURN_COMPLETE",
+      "t_s": 70.5327,
+      "turn_index": 4,
+      "role": "orchestrator",
+      "model": "google/gemini-3.5-flash",
+      "latency_ms": 7884
+    },
+    {
+      "event": "ON_PROMPT_PREPARED",
+      "t_s": 71.5336,
+      "turn_index": 5
+    },
+    {
+      "event": "ON_TURN_COMPLETE",
+      "t_s": 79.4104,
+      "turn_index": 5,
+      "role": "target",
+      "model": "meta-llama/llama-3.3-70b-instruct",
+      "latency_ms": 2432
+    },
+    {
+      "event": "ON_PROMPT_PREPARED",
+      "t_s": 81.0481,
+      "turn_index": 6
+    },
+    {
+      "event": "ON_TURN_COMPLETE",
+      "t_s": 96.4585,
+      "turn_index": 6,
+      "role": "orchestrator",
+      "model": "google/gemini-3.5-flash",
+      "latency_ms": 10065
+    },
+    {
+      "event": "ON_PROMPT_PREPARED",
+      "t_s": 97.4599,
+      "turn_index": 7
+    },
+    {
+      "event": "ON_TURN_COMPLETE",
+      "t_s": 106.5439,
+      "turn_index": 7,
+      "role": "target",
+      "model": "meta-llama/llama-3.3-70b-instruct",
+      "latency_ms": 2204
+    },
+    {
+      "event": "ON_PROMPT_PREPARED",
+      "t_s": 108.2459,
+      "turn_index": 8
+    },
+    {
+      "event": "ON_TURN_COMPLETE",
+      "t_s": 112.3523,
+      "turn_index": 8,
+      "role": "orchestrator",
+      "model": "google/gemini-3.5-flash",
+      "latency_ms": 1786
+    },
+    {
+      "event": "ON_DEBATE_ENDED",
+      "t_s": 112.3617,
+      "reason": "complete",
+      "turns": 9
+    },
+    {
+      "event": "ON_AUDIO_MIXED",
+      "t_s": 112.363
+    },
+    {
+      "event": "ON_VIDEO_RENDERED",
+      "t_s": 201.2923
+    }
+  ],
+  "media": {
+    "audio_mixed": true,
+    "video_rendered": true,
+    "typewriter_core_only": true,
+    "typewriter_gain_db": -15.0,
+    "scroll_s": 1.0,
+    "send_flash_s": 0.2,
+    "tracks": 9,
+    "audio_seconds": 74.31,
+    "engine": "edge",
+    "session_id": "20260901_012459_7b95bf",
+    "topic": "Is consciousness an illusion?",
+    "turn_index": 0,
+    "observers": [
+      "MemoryObserver",
+      "TranscriptObserver",
+      "MetricsObserver",
+      "VoiceObserver",
+      "ConsoleObserver"
+    ],
+    "video_path": "G:\\My Drive\\Z sosFiles\\Z_act\\@ NETWORK\\@MEDIAUPSCALE_FACTORY_DYNAMIC_CONTENT\\Unified Multi-Page Factory\\outputs\\aiwake\\aiwake_debate_20260901_012459_7b95bf.mp4"
+  },
+  "patterns": {
+    "observer": {
+      "applied": true,
+      "pattern": "Observer",
+      "broadcaster": "EventBus",
+      "listeners": [
+        "MemoryObserver",
+        "TranscriptObserver",
+        "MetricsObserver",
+        "VoiceObserver",
+        "ConsoleObserver"
+      ]
+    },
+    "strategy": {
+      "applied": true,
+      "pattern": "Strategy",
+      "llm_provider": "openrouter",
+      "tts_engine": "edge",
+      "swappable": [
+        "LLMProvider",
+        "TTSEngine"
+      ],
+      "note": "Dynamically swapping TTS or LLM providers never reaches room.py"
+    },
+    "solid": [
+      {
+        "principle": "SRP",
+        "applied": true,
+        "where": "observers/core.py \u2014 each observer owns one side-effect"
+      },
+      {
+        "principle": "OCP",
+        "applied": true,
+        "where": "models/base.py LLMProvider and media/audio.py TTSEngine extension points"
+      },
+      {
+        "principle": "LSP",
+        "applied": true,
+        "where": "SilentTTSEngine / EdgeTTSEngine and Offline / OpenRouter providers are substitutable"
+      },
+      {
+        "principle": "ISP",
+        "applied": true,
+        "where": "DebateObserver.interests \u2014 listeners opt into the events they handle"
+      },
+      {
+        "principle": "DIP",
+        "applied": true,
+        "where": "DebateRoom depends on LLMProvider ABC, not a concrete HTTP client"
+      }
+    ]
+  }
+}

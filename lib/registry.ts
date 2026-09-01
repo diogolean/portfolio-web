@@ -1,0 +1,153 @@
+// lib/registry.ts
+// Server-only. Reads the SSG data contract from FRONTEND_BLUEPRINT.md §3.
+// Never import "channels_config" or "core.economic_reel_lofi" here.
+
+import { readdir, readFile } from "fs/promises";
+import { existsSync } from "fs";
+import { join } from "path";
+import matter from "gray-matter";
+import { marked } from "marked";
+import type { ProjectArchitecture, ProjectMeta, ResolvedProject, GlobalTimeline } from "./types";
+
+const SHOWCASE_ROOT = join(process.cwd(), "content/showcase/projects");
+const TIMELINE_PATH = join(process.cwd(), "content/showcase/global_timeline.json");
+
+/** §3.1 — the scan rule. Unknown slugs 404; missing folder → empty list, not a crash. */
+export async function listProjectSlugs(): Promise<string[]> {
+  if (!existsSync(SHOWCASE_ROOT)) return [];
+  const dirs = await readdir(SHOWCASE_ROOT, { withFileTypes: true });
+  const slugs: string[] = [];
+  for (const d of dirs) {
+    if (!d.isDirectory()) continue;
+    if (existsSync(join(SHOWCASE_ROOT, d.name, "project.json"))) slugs.push(d.name);
+  }
+  return slugs;
+}
+
+async function readProjectMeta(slug: string): Promise<ProjectMeta | null> {
+  try {
+    const raw = await readFile(join(SHOWCASE_ROOT, slug, "project.json"), "utf-8");
+    return JSON.parse(raw) as ProjectMeta;
+  } catch {
+    // Malformed project.json must not take down the whole registry scan.
+    return null;
+  }
+}
+
+/** Adapter: derive pipeline_stages from Aiwake-shaped agents/patterns when absent (§4). */
+function deriveStagesFromAgents(arch: ProjectArchitecture): ProjectArchitecture {
+  if (arch.pipeline_stages?.length || !arch.agents?.length) return arch;
+  const derived = arch.agents.map((a) => ({
+    id: a.id,
+    kind: "llm" as const,
+    label: a.display_name,
+    detail: a.role,
+    model: a.model,
+    provider: a.provider,
+  }));
+  return { ...arch, pipeline_stages: derived };
+}
+
+async function readArchitecture(
+  slug: string,
+  telemetryFile = "architecture.json"
+): Promise<ProjectArchitecture | null> {
+  const path = join(SHOWCASE_ROOT, slug, telemetryFile);
+  if (!existsSync(path)) return null;
+  try {
+    const raw = await readFile(path, "utf-8");
+    const parsed = JSON.parse(raw) as ProjectArchitecture;
+    // §9 checklist: schema mismatch → skip graphs, keep project.json working.
+    if (parsed.schema_version !== "1.0") return null;
+    return deriveStagesFromAgents(parsed);
+  } catch {
+    return null;
+  }
+}
+
+async function readNarrative(slug: string, filenames: string[] = []) {
+  const out: { filename: string; html: string }[] = [];
+  for (const filename of filenames) {
+    const path = join(SHOWCASE_ROOT, slug, filename);
+    if (!existsSync(path)) continue;
+    const raw = await readFile(path, "utf-8");
+    const { content } = matter(raw);
+    out.push({ filename, html: await marked.parse(content) });
+  }
+  return out;
+}
+
+export async function getProject(slug: string): Promise<ResolvedProject | null> {
+  if (!existsSync(join(SHOWCASE_ROOT, slug, "project.json"))) return null;
+  const meta = await readProjectMeta(slug);
+  if (!meta) return null;
+  const architecture = await readArchitecture(slug, meta.telemetry);
+  const narrativeHtml = await readNarrative(slug, meta.narrative);
+  return { meta, architecture, narrativeHtml };
+}
+
+export async function getAllProjectsMeta(): Promise<ProjectMeta[]> {
+  const slugs = await listProjectSlugs();
+  const metas = await Promise.all(slugs.map(readProjectMeta));
+  return metas.filter((m): m is ProjectMeta => m !== null);
+}
+
+/**
+ * §9 checklist — a schema mismatch on optional data must degrade gracefully,
+ * never crash `/`. The engine's own writer (portfolio_log.py) keys
+ * `pipeline_nodes` as an object (`{ [nodeId]: { entries: [...] } }`), not the
+ * array the blueprint sketches — normalize both shapes here so callers can
+ * always treat it as `TimelineNode[]`.
+ */
+export async function getGlobalTimeline(): Promise<GlobalTimeline> {
+  if (!existsSync(TIMELINE_PATH)) return { pipeline_nodes: [] };
+  try {
+    const raw = await readFile(TIMELINE_PATH, "utf-8");
+    const parsed = JSON.parse(raw) as { pipeline_nodes?: unknown };
+    const nodes = parsed?.pipeline_nodes;
+    const pipeline_nodes: GlobalTimeline["pipeline_nodes"] = Array.isArray(nodes)
+      ? nodes
+      : nodes && typeof nodes === "object"
+        ? Object.values(nodes as Record<string, unknown>)
+        : [];
+    return { pipeline_nodes: pipeline_nodes as GlobalTimeline["pipeline_nodes"] };
+  } catch {
+    return { pipeline_nodes: [] };
+  }
+}
+
+/** §3.3 — resolve a public asset path; never trust absolute machine paths from telemetry. */
+export function assetUrl(kind: "images" | "videos" | "canvas", slug: string, filename?: string) {
+  if (!filename) return null;
+  if (/^https?:/i.test(filename)) return null; // reject remote URLs per §3.3
+  return `/showcase/${kind}/${slug}/${filename}`;
+}
+
+const IMAGE_EXT = /\.(png|webp|jpe?g)$/i;
+
+/**
+ * §5.1 Beat 1 — telemetry's `media_assets` wins when present; otherwise fall
+ * back to whatever CI actually copied into public/showcase/images/[slug]
+ * (dark variant preferred — the documented Wonder Feed v1 fallback, since it
+ * ships narrative markdown + diagrams but no architecture.json).
+ */
+export async function resolveHeroPoster(
+  slug: string,
+  architecture: ProjectArchitecture | null
+): Promise<string | null> {
+  const fromTelemetry =
+    assetUrl("images", slug, architecture?.media_assets?.poster) ??
+    assetUrl("images", slug, architecture?.media_assets?.diagrams?.[0]);
+  if (fromTelemetry) return fromTelemetry;
+
+  const dir = join(process.cwd(), "public/showcase/images", slug);
+  if (!existsSync(dir)) return null;
+  try {
+    const files = (await readdir(dir)).filter((f) => IMAGE_EXT.test(f));
+    if (files.length === 0) return null;
+    const preferred = files.find((f) => f.toLowerCase().includes("dark")) ?? [...files].sort()[0];
+    return assetUrl("images", slug, preferred);
+  } catch {
+    return null;
+  }
+}

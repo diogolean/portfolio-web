@@ -1,0 +1,149 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+
+  /* Geometry & Layout
+     --hex-width: 160–280px. Height stays a regular flat-top hex (width × √3/2).
+     --hex-gap: 2–8px grout. Larger values break the seamless flower. */
+  --hex-width: 220px; /* Size of each hexagon tile */
+  --hex-height: calc(var(--hex-width) * 0.866);
+  --hex-gap: 4px; /* Grout line gap between hexagons */
+  --hex-ring-distance: calc(var(--hex-height) + var(--hex-gap));
+  --hex-card-padding: 1.5rem;
+
+  /* 3D Motion Sensitivity — JS reads these; edit here, not in components. */
+  --global-tilt-max: 15deg; /* Max screen-wide cluster tilt angle */
+  --card-tilt-max: 25deg; /* Max hover tilt angle per card */
+  --cluster-z: 20px; /* Cluster lift toward camera */
+  --z-bg: 0px; /* Card background stays on the floor */
+  --z-depth-text: 40px; /* Z-axis float height for text */
+  --z-depth-badges: 75px; /* Z-axis float height for status badges */
+  --card-hover-scale: 1.08;
+
+  /* Palette & Glows */
+  --hex-bg-color: #0f0f11; /* Default tile background */
+  --hex-border-color: #27272a; /* Outer tile border */
+  --glow-active: #22c55e; /* Green glow for active pipelines */
+  --glow-registry: #3b82f6; /* Blue glow for registry items */
+  --hex-text: #e9edef;
+  --hex-text-muted: #8b98a5;
+  --hex-accent: var(--glow-active);
+  --hex-font-sans: var(--font-plex-sans), system-ui, sans-serif;
+  --hex-font-mono: var(--font-plex-mono), ui-monospace, monospace;
+}
+
+body {
+  background-color: #07090c;
+  color: #e9edef;
+}
+
+/* Shared perspective for the flower. Inline cluster rotate/translateZ is
+   applied in HexMosaic from window-level mousemove. */
+.hex-cluster {
+  position: relative;
+  perspective: 1200px;
+  transform-style: preserve-3d;
+  will-change: transform;
+  pointer-events: auto;
+  width: calc(var(--hex-width) + 2 * var(--hex-ring-distance) * 0.866);
+  height: calc(var(--hex-height) + 2 * var(--hex-ring-distance));
+}
+
+.hex-slot {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform-style: preserve-3d;
+}
+
+.hex-slot:hover {
+  z-index: 20;
+}
+
+.hex-frame {
+  width: var(--hex-width);
+  height: var(--hex-height);
+  position: relative;
+  transform-style: preserve-3d;
+}
+
+.hex-tilt {
+  will-change: transform;
+  cursor: pointer;
+  user-select: none;
+}
+
+.hex-bg {
+  position: absolute;
+  inset: 0;
+  clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+  transform: translateZ(var(--z-bg));
+  background: var(--hex-bg-color);
+  border-color: var(--hex-border-color);
+}
+
+.hex-bg-active {
+  border-color: color-mix(in srgb, var(--glow-active) 45%, var(--hex-border-color));
+  filter: drop-shadow(0 14px 22px color-mix(in srgb, var(--glow-active) 55%, transparent));
+}
+
+.group:hover .hex-bg-active {
+  background: color-mix(in srgb, var(--hex-bg-color) 70%, #12161c);
+}
+
+.hex-bg-registry {
+  border-color: color-mix(in srgb, var(--glow-registry) 35%, var(--hex-border-color));
+  filter: drop-shadow(0 10px 16px color-mix(in srgb, var(--glow-registry) 40%, transparent));
+}
+
+.group:hover .hex-bg-registry {
+  background: color-mix(in srgb, var(--hex-bg-color) 80%, #12161c);
+}
+
+.hex-title-active,
+.hex-title-registry {
+  color: var(--hex-text);
+  font-family: var(--hex-font-sans);
+}
+
+.hex-title-registry,
+.hex-codename {
+  color: var(--hex-text-muted);
+}
+
+.hex-codename,
+.hex-tech-tag,
+.hex-badge-active,
+.hex-badge-registry {
+  font-family: var(--hex-font-mono);
+}
+
+.hex-accent-line {
+  background: color-mix(in srgb, var(--hex-accent) 70%, transparent);
+}
+
+.group:hover .hex-accent-line {
+  background: var(--hex-accent);
+}
+
+.hex-registry-line {
+  background: var(--hex-border-color);
+}
+
+.hex-tech-tag,
+.hex-badge-active {
+  color: var(--glow-active);
+}
+
+.hex-badge-active {
+  border-color: color-mix(in srgb, var(--glow-active) 40%, transparent);
+  background: color-mix(in srgb, var(--glow-active) 12%, transparent);
+}
+
+.hex-badge-registry {
+  color: color-mix(in srgb, var(--glow-registry) 80%, white);
+  border-color: color-mix(in srgb, var(--glow-registry) 40%, transparent);
+}
