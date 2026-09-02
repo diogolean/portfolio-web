@@ -1,15 +1,16 @@
 "use client";
 
-import { motion, useScroll, useSpring, useTransform } from "framer-motion";
+import { motion, useMotionValue, useScroll, useSpring, useTransform } from "framer-motion";
 import { useRef, useState } from "react";
 import type { ProjectMediaAsset } from "@/lib/media-discovery";
-import type { ArchitectureNode } from "@/lib/project-parser";
+import type { PipelineNode } from "@/types/project";
 import ArchitectureCanvas from "./ArchitectureCanvas";
 import DynamicMediaContainer from "./DynamicMediaContainer";
+import MicroMosaicCloud from "./MicroMosaicCloud";
 
 interface ScrollStorylineProps {
   slug: string;
-  nodes: ArchitectureNode[];
+  nodes: PipelineNode[];
   media: ProjectMediaAsset | null;
 }
 
@@ -25,9 +26,9 @@ export default function ScrollStoryline({ slug, nodes, media }: ScrollStorylineP
   const activeNode = nodes[activeIndex] ?? nodes[0];
 
   return (
-    <section ref={containerRef} className="relative px-5 py-24 sm:px-8 lg:px-12 lg:py-36">
+    <section ref={containerRef} className="relative px-5 py-20 sm:px-8 lg:px-12 lg:py-28">
       <div className="mx-auto max-w-[1500px]">
-        <div className="mb-16 max-w-2xl lg:mb-24">
+        <div className="mb-12 max-w-2xl lg:mb-16">
           <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-accent">
             Scroll-linked execution graph
           </p>
@@ -40,24 +41,38 @@ export default function ScrollStoryline({ slug, nodes, media }: ScrollStorylineP
           </p>
         </div>
 
-        <div className="grid items-start gap-12 lg:grid-cols-2 lg:gap-16">
-          <div className="lg:sticky lg:top-6 lg:h-[calc(100vh-3rem)]">
-            <div className="flex h-full flex-col justify-center gap-4">
-              <DynamicMediaContainer media={media} slug={slug} activeNode={activeNode} />
-              <ArchitectureCanvas nodes={nodes} activeIndex={activeIndex} />
+        <div className="grid items-start gap-10 lg:grid-cols-2 lg:gap-12 xl:gap-16">
+          <div className="lg:sticky lg:top-4 lg:h-[calc(100vh-2rem)]">
+            <div className="flex h-full flex-col justify-center">
+              <MicroMosaicCloud node={activeNode}>
+                <DynamicMediaContainer media={media} slug={slug} activeNode={activeNode} />
+              </MicroMosaicCloud>
+              <div className="mx-auto mt-3 hidden w-full max-w-lg xl:block">
+                <ArchitectureCanvas nodes={nodes} activeIndex={activeIndex} />
+              </div>
             </div>
           </div>
 
-          <div className="relative">
-            <div className="absolute bottom-[12vh] left-5 top-[12vh] w-px bg-neutral-800 sm:left-7">
-              <motion.div
-                style={{ scaleY: spineScale, transformOrigin: "top" }}
-                className="h-full w-full bg-accent shadow-[0_0_12px_rgba(0,255,102,0.4)]"
+          <div className="relative space-y-8 pb-8">
+            <svg
+              className="pointer-events-none absolute bottom-8 left-[1.12rem] top-8 h-[calc(100%-4rem)] w-3 overflow-visible sm:left-[1.62rem]"
+              viewBox="0 0 12 1000"
+              preserveAspectRatio="none"
+              aria-hidden
+            >
+              <path d="M6 0V1000" vectorEffect="non-scaling-stroke" stroke="#27272a" strokeWidth="1" />
+              <motion.path
+                d="M6 0V1000"
+                vectorEffect="non-scaling-stroke"
+                stroke="#00ff66"
+                strokeWidth="2"
+                style={{ pathLength: spineScale }}
+                className="drop-shadow-[0_0_6px_rgba(0,255,102,0.8)]"
               />
-            </div>
+            </svg>
 
             {nodes.map((item, index) => (
-              <StageCard
+              <HexStageCard
                 key={item.id}
                 node={item}
                 index={index}
@@ -73,27 +88,30 @@ export default function ScrollStoryline({ slug, nodes, media }: ScrollStorylineP
   );
 }
 
-function StageCard({
+function HexStageCard({
   node,
   index,
   total,
   active,
   onActivate,
 }: {
-  node: ArchitectureNode;
+  node: PipelineNode;
   index: number;
   total: number;
   active: boolean;
   onActivate: () => void;
 }) {
+  const rotateX = useMotionValue(0);
+  const rotateY = useMotionValue(0);
+
   return (
     <motion.article
-      initial={{ opacity: 0.25, scale: 0.95, y: 24 }}
+      initial={{ opacity: 0.25, scale: 0.95, y: 18 }}
       whileInView={{ opacity: 1, scale: 1, y: 0 }}
-      viewport={{ amount: 0.55, margin: "-12% 0px -25% 0px" }}
+      viewport={{ amount: 0.48, margin: "-8% 0px -18% 0px" }}
       onViewportEnter={onActivate}
-      transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-      className="relative flex min-h-[72vh] items-center pl-14 sm:pl-20"
+      transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+      className="relative pl-14 sm:pl-20"
     >
       <motion.span
         animate={{
@@ -106,61 +124,66 @@ function StageCard({
         {active && <span className="h-1.5 w-1.5 rounded-full bg-black" />}
       </motion.span>
 
-      <div
-        className={`relative w-full overflow-hidden rounded-2xl border p-6 transition-colors duration-500 sm:p-8 ${
+      <motion.div
+        style={{ rotateX, rotateY, transformPerspective: 1000, transformStyle: "preserve-3d" }}
+        onMouseMove={(event) => {
+          const bounds = event.currentTarget.getBoundingClientRect();
+          rotateY.set(((event.clientX - bounds.left) / bounds.width - 0.5) * 8);
+          rotateX.set(((event.clientY - bounds.top) / bounds.height - 0.5) * -8);
+        }}
+        onMouseLeave={() => {
+          rotateX.set(0);
+          rotateY.set(0);
+        }}
+        transition={{ type: "spring", stiffness: 180, damping: 20 }}
+        className={`relative w-full bg-gradient-to-br p-px transition-shadow duration-500 [clip-path:polygon(18px_0,calc(100%-18px)_0,100%_18px,100%_calc(100%-18px),calc(100%-18px)_100%,18px_100%,0_calc(100%-18px),0_18px)] ${
           active
-            ? "border-accent/35 bg-neutral-900/90 shadow-[0_24px_80px_rgba(0,255,102,0.06)]"
-            : "border-neutral-800 bg-neutral-900/45"
+            ? "from-emerald-400/70 via-emerald-500/25 to-emerald-900/50 shadow-[0_20px_70px_rgba(0,255,102,0.09)]"
+            : "from-neutral-700 via-neutral-800 to-neutral-900"
         }`}
       >
-        <svg
-          className="absolute right-0 top-0 h-28 w-28 text-accent/20"
-          viewBox="0 0 112 112"
-          fill="none"
-          aria-hidden
+        <div
+          className="relative overflow-hidden bg-neutral-950/95 p-5 [clip-path:polygon(18px_0,calc(100%-18px)_0,100%_18px,100%_calc(100%-18px),calc(100%-18px)_100%,18px_100%,0_calc(100%-18px),0_18px)] sm:p-6"
         >
-          <motion.path
-            d="M112 1H72C42 1 24 20 24 48v64"
-            stroke="currentColor"
-            strokeWidth="1"
-            initial={{ pathLength: 0 }}
-            whileInView={{ pathLength: 1 }}
-            viewport={{ once: true, amount: 0.8 }}
-            transition={{ duration: 1 }}
-          />
-        </svg>
-
-        <div className="flex items-center justify-between gap-4">
-          <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-accent">
-            {node.kind}
-          </span>
-          <span className="font-mono text-[10px] text-neutral-600">
-            {String(index + 1).padStart(2, "0")} / {String(total).padStart(2, "0")}
-          </span>
-        </div>
-        <h3 className="mt-7 max-w-lg text-2xl font-medium tracking-tight text-foreground sm:text-3xl">
-          {node.title}
-        </h3>
-        <p className="mt-5 max-w-xl text-sm leading-7 text-neutral-400">{node.summary}</p>
-
-        <div className="mt-8 rounded-xl border border-neutral-800 bg-black/30 p-4">
-          <p className="font-mono text-[9px] uppercase tracking-[0.18em] text-neutral-600">
-            I/O contract
-          </p>
-          <p className="mt-2 font-mono text-[11px] leading-6 text-neutral-300">{node.contract}</p>
-        </div>
-
-        <div className="mt-6 flex flex-wrap gap-2">
-          {node.technologies.map((technology) => (
-            <span
-              key={technology}
-              className="rounded-full border border-neutral-800 bg-neutral-950/60 px-3 py-1 font-mono text-[9px] text-neutral-500"
-            >
-              {technology}
+          <div className="pointer-events-none absolute right-0 top-0 h-16 w-16 border-l border-b border-emerald-500/15 bg-emerald-400/[0.03]" />
+          <div className="flex items-center justify-between gap-4">
+            <span className="font-mono text-[9px] uppercase tracking-[0.22em] text-emerald-400">
+              {node.category}
             </span>
-          ))}
+            <span className="font-mono text-[9px] text-neutral-600">
+              {String(index + 1).padStart(2, "0")} / {String(total).padStart(2, "0")}
+            </span>
+          </div>
+          <h3 className="mt-4 max-w-lg text-xl font-medium tracking-tight text-foreground sm:text-2xl">
+            {node.title}
+          </h3>
+          <p className="mt-3 max-w-xl text-xs leading-6 text-neutral-400 sm:text-sm">
+            {node.description}
+          </p>
+
+          <div className="mt-4 grid gap-2 border-t border-neutral-800/80 pt-4 font-mono text-[9px] sm:grid-cols-2">
+            <div>
+              <span className="text-neutral-600">IN</span>
+              <p className="mt-1 truncate text-neutral-300">{node.ioContract.input}</p>
+            </div>
+            <div>
+              <span className="text-neutral-600">OUT</span>
+              <p className="mt-1 truncate text-neutral-300">{node.ioContract.output}</p>
+            </div>
+          </div>
+
+          <div className="mt-4 flex flex-wrap gap-1.5">
+            {node.tags.slice(0, 4).map((technology) => (
+              <span
+                key={technology}
+                className="border border-emerald-500/15 bg-emerald-500/[0.04] px-2 py-1 font-mono text-[8px] text-neutral-500 [clip-path:polygon(5px_0,100%_0,100%_calc(100%-5px),calc(100%-5px)_100%,0_100%,0_5px)]"
+              >
+                {technology}
+              </span>
+            ))}
+          </div>
         </div>
-      </div>
+      </motion.div>
     </motion.article>
   );
 }

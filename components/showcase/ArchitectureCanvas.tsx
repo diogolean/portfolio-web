@@ -2,12 +2,12 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import { useState } from "react";
-import type { ArchitectureNode } from "@/lib/project-parser";
+import type { PipelineNode } from "@/types/project";
 
 type InspectorMode = "contract" | "payload" | "latency";
 
 interface ArchitectureCanvasProps {
-  nodes: ArchitectureNode[];
+  nodes: PipelineNode[];
   activeIndex: number;
 }
 
@@ -97,7 +97,7 @@ export default function ArchitectureCanvas({ nodes, activeIndex }: ArchitectureC
                   fontSize="7"
                   fontFamily="var(--font-plex-mono)"
                 >
-                  {item.kind.toUpperCase()}
+                  {item.category}
                 </text>
               </g>
             );
@@ -137,11 +137,13 @@ export default function ArchitectureCanvas({ nodes, activeIndex }: ArchitectureC
             </p>
             {mode === "payload" ? (
               <pre className="mt-2 max-h-28 overflow-auto whitespace-pre-wrap font-mono text-[9px] leading-5 text-neutral-400">
-                {JSON.stringify(activeNode.payload, null, 2)}
+                {JSON.stringify(activeNode.payloadSample ?? activeNode.ioContract, null, 2)}
               </pre>
             ) : (
               <p className="mt-2 font-mono text-[10px] leading-5 text-neutral-300">
-                {mode === "contract" ? activeNode.contract : activeNode.latency}
+                {mode === "contract"
+                  ? `${activeNode.ioContract.input} → ${activeNode.ioContract.output}`
+                  : (activeNode.latency ?? "Measured at runtime")}
               </p>
             )}
           </motion.div>

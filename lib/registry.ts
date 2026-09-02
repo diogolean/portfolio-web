@@ -86,6 +86,35 @@ export async function getProject(slug: string): Promise<ResolvedProject | null> 
   return { meta, architecture, narrativeHtml };
 }
 
+const PROJECT_SLUG_ALIASES: Record<string, string> = {
+  aiwake: "aiwake",
+  master_mei: "master_mei",
+  mastermei: "master_mei",
+  wonder_feed: "wonder_feed",
+  wonderfeed: "wonder_feed",
+  anna_protocol: "anna_protocol",
+  annas_garden: "anna_protocol",
+  endless_summer_paradise: "endless_summer_paradise",
+  endless_summers_paradise: "endless_summer_paradise",
+  ancient_knowledge: "ancient_knowledge",
+  momma_circle: "momma_circle",
+};
+
+/** Resolve URL-safe aliases to a registered filesystem slug without allowing path traversal. */
+export async function getProjectBySlug(slug: string): Promise<ResolvedProject | null> {
+  const normalized = slug
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9_-]+/g, "_")
+    .replace(/-+/g, "_")
+    .replace(/_+/g, "_")
+    .replace(/^_|_$/g, "");
+  const registered = await listProjectSlugs();
+  const canonical = PROJECT_SLUG_ALIASES[normalized] ?? normalized;
+  if (!registered.includes(canonical)) return null;
+  return getProject(canonical);
+}
+
 export async function resolveCoverImage(slug: string, meta: ProjectMeta): Promise<string | null> {
   const named = meta.cover_image ?? meta.image;
   if (named) {

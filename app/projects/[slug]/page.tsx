@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
-import { getProject } from "@/lib/registry";
-import { parseProjectShowcase } from "@/lib/project-parser";
+import { getProjectBySlug } from "@/lib/registry";
+import { getProjectPipeline } from "@/lib/projects-data";
 import { discoverProjectMedia } from "@/lib/media-discovery";
 import ScrollStoryline from "@/components/showcase/ScrollStoryline";
 import TerminalTelemetry from "@/components/showcase/TerminalTelemetry";
@@ -14,12 +14,12 @@ interface ProjectPageProps {
 
 export default async function ProjectPage({ params }: ProjectPageProps) {
   const { slug } = await params;
-  const project = await getProject(slug);
+  const project = await getProjectBySlug(slug);
   if (!project) notFound();
 
   const { meta, architecture } = project;
-  const showcase = parseProjectShowcase(project);
-  const media = await discoverProjectMedia(slug, architecture);
+  const showcase = getProjectPipeline(project);
+  const media = await discoverProjectMedia(meta.slug, architecture);
 
   return (
     <main className="min-h-screen overflow-hidden bg-bg">
@@ -65,7 +65,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
         </div>
       </header>
 
-      <ScrollStoryline slug={slug} nodes={showcase.nodes} media={media} />
+      <ScrollStoryline slug={meta.slug} nodes={showcase.nodes} media={media} />
       <TerminalTelemetry lines={showcase.telemetry} sessionId={architecture?.session_id} />
     </main>
   );
