@@ -1,21 +1,27 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
+import { useEffect, useState } from "react";
+import HexTransitionLoader from "@/components/showcase/HexTransitionLoader";
 
-// template.tsx remounts on every navigation, unlike layout.tsx — this is the
-// deliberately simple crossfade requested for Build Ticket #001: no
-// cross-route layoutId, no shared-element gymnastics, nothing that can hang
-// the App Router. If a fancier transition is wanted later, swap this file
-// for a client-side pathname-keyed <AnimatePresence> wrapper — do it as a
-// separate ticket so a regression here doesn't block the whole route tree.
 export default function Template({ children }: { children: React.ReactNode }) {
+  const [hydrated, setHydrated] = useState(false);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => setHydrated(true), 520);
+    return () => window.clearTimeout(timer);
+  }, []);
+
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.25, ease: "easeOut" }}
-    >
-      {children}
-    </motion.div>
+    <>
+      <AnimatePresence>{!hydrated && <HexTransitionLoader />}</AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: hydrated ? 1 : 0 }}
+        transition={{ duration: 0.3, ease: "easeOut" }}
+      >
+        {children}
+      </motion.div>
+    </>
   );
 }

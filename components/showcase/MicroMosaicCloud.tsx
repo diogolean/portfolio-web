@@ -87,22 +87,22 @@ function MosaicTile({
       style={{ x: translateX, y: translateY, rotateX, rotateY, translateZ: index * 8 }}
       animate={{ y: [0, index % 2 ? 8 : -7, 0] }}
       transition={{ duration: 5 + index, repeat: Infinity, ease: "easeInOut" }}
-      className={`pointer-events-auto absolute z-20 w-32 cursor-crosshair overflow-hidden border border-emerald-500/25 bg-neutral-950/85 p-3 shadow-[0_16px_40px_rgba(0,0,0,0.55)] backdrop-blur-md [clip-path:polygon(10px_0,100%_0,100%_calc(100%-10px),calc(100%-10px)_100%,0_100%,0_10px)] ${POSITIONS[index]}`}
+      className={`pointer-events-auto absolute z-20 w-40 cursor-crosshair overflow-hidden border border-emerald-500/40 bg-zinc-950/90 p-4 shadow-[0_16px_40px_rgba(0,0,0,0.6)] backdrop-blur-md [clip-path:polygon(10px_0,100%_0,100%_calc(100%-10px),calc(100%-10px)_100%,0_100%,0_10px)] ${POSITIONS[index]}`}
     >
       <div className="flex items-center justify-between">
-        <span className="font-mono text-[7px] uppercase tracking-[0.16em] text-emerald-400">
+        <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-emerald-400">
           {asset.type}
         </span>
         <span className="h-1 w-1 rounded-full bg-emerald-400" />
       </div>
-      <p className="mt-2 truncate font-mono text-[8px] text-neutral-300">{asset.label}</p>
+      <p className="mt-2 truncate font-mono text-xs text-zinc-200">{asset.label}</p>
       {asset.type === "audio" ? (
         <Waveform values={asset.src} />
       ) : asset.type === "image" ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img src={asset.src} alt="" className="mt-2 h-14 w-full object-cover opacity-70" />
       ) : (
-        <pre className="mt-2 max-h-16 overflow-hidden whitespace-pre-wrap font-mono text-[7px] leading-3 text-neutral-600">
+        <pre className="mt-2 max-h-20 overflow-hidden whitespace-pre-wrap font-mono text-[10px] leading-4 text-zinc-500">
           {asset.src}
         </pre>
       )}

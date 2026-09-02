@@ -21,20 +21,20 @@ export default function ArchitectureCanvas({ nodes, activeIndex }: ArchitectureC
   const step = nodes.length > 1 ? (endX - startX) / (nodes.length - 1) : 0;
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-neutral-800 bg-neutral-950/85">
+    <div className="overflow-hidden rounded-2xl border border-emerald-500/40 bg-zinc-950/90 shadow-[0_18px_60px_rgba(0,0,0,0.45)]">
       <div className="flex items-center justify-between border-b border-neutral-800 px-4 py-3">
         <div className="flex items-center gap-2">
           <span className="h-2 w-2 rounded-full bg-accent shadow-[0_0_10px_#00ff66]" />
-          <span className="font-mono text-[9px] uppercase tracking-[0.18em] text-neutral-500">
+          <span className="font-mono text-xs uppercase tracking-[0.16em] text-zinc-400">
             Architecture runtime
           </span>
         </div>
-        <span className="font-mono text-[9px] text-neutral-700">
+        <span className="font-mono text-xs text-zinc-500">
           {String(activeIndex + 1).padStart(2, "0")} / {String(nodes.length).padStart(2, "0")}
         </span>
       </div>
 
-      <div className="relative h-36 overflow-hidden bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:20px_20px]">
+      <div className="relative h-40 overflow-hidden bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:20px_20px]">
         <svg
           viewBox={`0 0 ${width} 144`}
           className="h-full w-full"
@@ -94,7 +94,7 @@ export default function ArchitectureCanvas({ nodes, activeIndex }: ArchitectureC
                   y={y + 36}
                   textAnchor="middle"
                   fill={active ? "#e4e4e7" : "#52525b"}
-                  fontSize="7"
+                  fontSize="9"
                   fontFamily="var(--font-plex-mono)"
                 >
                   {item.category}
@@ -112,7 +112,7 @@ export default function ArchitectureCanvas({ nodes, activeIndex }: ArchitectureC
               key={option}
               type="button"
               onClick={() => setMode(option)}
-              className={`rounded-md border px-2.5 py-1.5 font-mono text-[9px] uppercase tracking-wider transition ${
+              className={`rounded-md border px-3 py-2 font-mono text-xs uppercase tracking-wider transition ${
                 mode === option
                   ? "border-accent/40 bg-accent/10 text-accent"
                   : "border-neutral-800 text-neutral-600 hover:text-neutral-300"
@@ -132,15 +132,15 @@ export default function ArchitectureCanvas({ nodes, activeIndex }: ArchitectureC
             transition={{ duration: 0.2 }}
             className="mt-4 min-h-20 rounded-lg border border-neutral-900 bg-black/40 p-3"
           >
-            <p className="font-mono text-[9px] uppercase tracking-wider text-neutral-600">
+            <p className="font-mono text-xs uppercase tracking-wider text-zinc-500">
               {activeNode.title} / {mode}
             </p>
             {mode === "payload" ? (
-              <pre className="mt-2 max-h-28 overflow-auto whitespace-pre-wrap font-mono text-[9px] leading-5 text-neutral-400">
+              <pre className="mt-2 max-h-32 overflow-auto whitespace-pre-wrap font-mono text-xs leading-5 text-zinc-300">
                 {JSON.stringify(activeNode.payloadSample ?? activeNode.ioContract, null, 2)}
               </pre>
             ) : (
-              <p className="mt-2 font-mono text-[10px] leading-5 text-neutral-300">
+              <p className="mt-2 font-mono text-xs leading-5 text-zinc-200">
                 {mode === "contract"
                   ? `${activeNode.ioContract.input} → ${activeNode.ioContract.output}`
                   : (activeNode.latency ?? "Measured at runtime")}

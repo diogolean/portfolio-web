@@ -1,5 +1,5 @@
 import { getAllProjectsMeta, getGlobalTimeline } from "@/lib/registry";
-import HexMosaic from "@/components/HexMosaic";
+import HexBoard from "@/components/home/HexBoard";
 
 export default async function HomePage() {
   const projects = await getAllProjectsMeta();
@@ -26,7 +26,7 @@ export default async function HomePage() {
       {/* Aumentado mt-4 para mt-16 para descer o mosaico */}
       <div className="mt-16">
         {projects.length > 0 ? (
-          <HexMosaic projects={projects} />
+          <HexBoard projects={projects} />
         ) : (
           <p className="text-sm text-muted">No channels registered yet.</p>
         )}

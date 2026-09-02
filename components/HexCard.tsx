@@ -1,12 +1,13 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
 import { useState, type CSSProperties, type MouseEvent } from "react";
 import type { ProjectMeta } from "@/lib/types";
 
 interface HexCardProps {
   project: ProjectMeta;
+  onNavigate?: (slug: string) => void;
+  isLaunching?: boolean;
 }
 
 const REST_TRANSFORM = "perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)";
@@ -17,7 +18,7 @@ function readCssNumber(name: string, fallback: number) {
   return Number.isFinite(value) ? value : fallback;
 }
 
-export default function HexCard({ project }: HexCardProps) {
+export default function HexCard({ project, onNavigate, isLaunching = false }: HexCardProps) {
   const isRegistry = project.status === "registry";
   const coverSrc = project.cover_image ?? project.image ?? null;
   const [hovered, setHovered] = useState(false);
@@ -26,7 +27,7 @@ export default function HexCard({ project }: HexCardProps) {
     transition: "transform 0.4s ease-out",
   });
 
-  function handleMouseMove(e: MouseEvent<HTMLAnchorElement>) {
+  function handleMouseMove(e: MouseEvent<HTMLButtonElement>) {
     const el = e.currentTarget;
     const rect = el.getBoundingClientRect();
     const x = e.clientX - rect.left - rect.width / 2;
@@ -55,18 +56,26 @@ export default function HexCard({ project }: HexCardProps) {
   }
 
   return (
-    <Link
-      href={`/projects/${project.slug}`}
+    <button
+      type="button"
+      onClick={() => onNavigate?.(project.slug)}
       onMouseMove={handleMouseMove}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
-      className="hex-hitbox"
+      className="hex-hitbox border-0 bg-transparent p-0 text-inherit"
       data-hovered={hovered || undefined}
       suppressHydrationWarning
     >
       <div
         className="hex-frame hex-tilt flex items-center justify-center"
-        style={{ ...tilt, transformStyle: "preserve-3d" }}
+        style={{
+          ...tilt,
+          transform: isLaunching
+            ? "perspective(1000px) rotateX(720deg) rotateY(-1080deg) rotateZ(540deg) scale3d(0.15, 0.15, 0.15)"
+            : tilt.transform,
+          transition: isLaunching ? "transform 0.65s cubic-bezier(0.7, 0, 0.3, 1)" : tilt.transition,
+          transformStyle: "preserve-3d",
+        }}
       >
         <div
           className={["hex-bg border", isRegistry ? "hex-bg-registry" : "hex-bg-active"].join(" ")}
@@ -120,6 +129,6 @@ export default function HexCard({ project }: HexCardProps) {
           </span>
         </div>
       </div>
-    </Link>
+    </button>
   );
 }

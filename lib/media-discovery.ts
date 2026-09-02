@@ -18,6 +18,9 @@ export interface ProjectMediaAsset {
 const EXTERNAL_OUTPUT_ROOT =
   process.env.SHOWCASE_OUTPUT_ROOT ??
   "G:\\My Drive\\Z sosFiles\\Z_act\\@ NETWORK\\@MEDIAUPSCALE_FACTORY_DYNAMIC_CONTENT\\Unified Multi-Page Factory\\outputs";
+const ENDLESS_SUMMER_PRODUCTION_ROOT =
+  process.env.ENDLESS_SUMMER_PRODUCTION_ROOT ??
+  "G:\\My Drive\\Z sosFiles\\Z_act\\@ NETWORK\\@ MEDIAUPSCALE_FACTORY\\Endless_Summers_Paradise - Production";
 const VIDEO_EXTENSIONS = new Set([".mp4", ".webm", ".mov"]);
 const IMAGE_EXTENSIONS = new Set([".png", ".webp", ".jpg", ".jpeg"]);
 
@@ -28,8 +31,8 @@ function mediaKind(filename: string): MediaKind | null {
   return null;
 }
 
-async function newestMediaFile(root: string, maxDepth = 3) {
-  if (!existsSync(root)) return null;
+async function newestMediaFiles(root: string, maxDepth = 4, limit = 8) {
+  if (!existsSync(root)) return [];
   const candidates: Array<{ path: string; modified: number }> = [];
 
   async function walk(directory: string, depth: number) {
@@ -57,59 +60,90 @@ async function newestMediaFile(root: string, maxDepth = 3) {
   }
 
   await walk(root, 0);
-  return candidates.sort((a, b) => b.modified - a.modified)[0]?.path ?? null;
+  return candidates
+    .filter(({ path }) => !/[\\/](reproved|tests?|temp|work|visualqa_agent_judge)[\\/]/i.test(path))
+    .sort((a, b) => {
+      const score = (path: string) =>
+        (VIDEO_EXTENSIONS.has(extname(path).toLowerCase()) ? 100 : 0) +
+        (/[\\/]clips[\\/]/i.test(path) ? 30 : 0) +
+        (/(_final|ultimate_master)\./i.test(path) ? 15 : 0);
+      return score(b.path) - score(a.path) || b.modified - a.modified;
+    })
+    .slice(0, limit)
+    .map(({ path }) => path);
 }
 
 export function getExternalOutputRoot() {
   return EXTERNAL_OUTPUT_ROOT;
 }
 
-export async function discoverProjectMedia(
+export function getProjectMediaRoots(slug: string) {
+  const roots = [join(EXTERNAL_OUTPUT_ROOT, slug)];
+  if (slug === "endless_summer_paradise") roots.push(ENDLESS_SUMMER_PRODUCTION_ROOT);
+  return roots;
+}
+
+export async function discoverProjectMediaAssets(
   slug: string,
   architecture: ProjectArchitecture | null
-): Promise<ProjectMediaAsset | null> {
+): Promise<ProjectMediaAsset[]> {
+  const assets: ProjectMediaAsset[] = [];
+  const seen = new Set<string>();
+  const add = (asset: ProjectMediaAsset) => {
+    if (seen.has(asset.url)) return;
+    seen.add(asset.url);
+    assets.push(asset);
+  };
+
   const publicMedia = await resolveHeroMedia(slug, architecture);
   if (publicMedia.video) {
-    return {
+    add({
       kind: "video",
       url: publicMedia.video,
       filename: publicMedia.video.split("/").at(-1) ?? "output.mp4",
       source: "public",
-    };
+    });
   }
 
   const publicOutputRoot = join(process.cwd(), "public", "outputs", slug);
-  const publicOutput = await newestMediaFile(publicOutputRoot);
-  if (publicOutput) {
-    const relativePath = relative(join(process.cwd(), "public"), publicOutput).split(sep).join("/");
-    return {
-      kind: mediaKind(publicOutput) ?? "image",
+  for (const output of await newestMediaFiles(publicOutputRoot)) {
+    const relativePath = relative(join(process.cwd(), "public"), output).split(sep).join("/");
+    add({
+      kind: mediaKind(output) ?? "image",
       url: `/${relativePath}`,
-      filename: publicOutput.split(sep).at(-1) ?? "output",
+      filename: output.split(sep).at(-1) ?? "output",
       source: "public",
-    };
+    });
   }
 
-  const externalProjectRoot = join(EXTERNAL_OUTPUT_ROOT, slug);
-  const externalOutput = await newestMediaFile(externalProjectRoot);
-  if (externalOutput) {
-    const relativePath = relative(externalProjectRoot, externalOutput).split(sep).join("/");
-    return {
-      kind: mediaKind(externalOutput) ?? "image",
-      url: `/api/showcase-media/${slug}?file=${encodeURIComponent(relativePath)}`,
-      filename: externalOutput.split(sep).at(-1) ?? "output",
-      source: "external",
-    };
+  const roots = getProjectMediaRoots(slug);
+  for (const [rootIndex, root] of roots.entries()) {
+    for (const output of await newestMediaFiles(root)) {
+      const relativePath = relative(root, output).split(sep).join("/");
+      add({
+        kind: mediaKind(output) ?? "image",
+        url: `/api/showcase-media/${slug}?root=${rootIndex}&file=${encodeURIComponent(relativePath)}`,
+        filename: output.split(sep).at(-1) ?? "output",
+        source: "external",
+      });
+    }
   }
 
   if (publicMedia.poster) {
-    return {
+    add({
       kind: "image",
       url: publicMedia.poster,
       filename: publicMedia.poster.split("/").at(-1) ?? "poster",
       source: "public",
-    };
+    });
   }
 
-  return null;
+  return assets.slice(0, 10);
+}
+
+export async function discoverProjectMedia(
+  slug: string,
+  architecture: ProjectArchitecture | null
+): Promise<ProjectMediaAsset | null> {
+  return (await discoverProjectMediaAssets(slug, architecture))[0] ?? null;
 }

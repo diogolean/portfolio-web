@@ -1,9 +1,9 @@
 import { createReadStream } from "fs";
 import { stat } from "fs/promises";
 import { Readable } from "stream";
-import { extname, join, resolve, sep } from "path";
+import { extname, resolve, sep } from "path";
 import { NextRequest } from "next/server";
-import { getExternalOutputRoot } from "@/lib/media-discovery";
+import { getProjectMediaRoots } from "@/lib/media-discovery";
 
 const CONTENT_TYPES: Record<string, string> = {
   ".mp4": "video/mp4",
@@ -22,11 +22,16 @@ interface RouteContext {
 export async function GET(request: NextRequest, { params }: RouteContext) {
   const { slug } = await params;
   const filename = request.nextUrl.searchParams.get("file");
+  const rootIndex = Number(request.nextUrl.searchParams.get("root") ?? "0");
   if (!/^[a-z0-9_]+$/.test(slug) || !filename) {
     return new Response("Invalid media request", { status: 400 });
   }
 
-  const projectRoot = resolve(join(getExternalOutputRoot(), slug));
+  const roots = getProjectMediaRoots(slug);
+  if (!Number.isInteger(rootIndex) || rootIndex < 0 || rootIndex >= roots.length) {
+    return new Response("Invalid media root", { status: 400 });
+  }
+  const projectRoot = resolve(roots[rootIndex]);
   const path = resolve(projectRoot, filename);
   if (!path.toLowerCase().startsWith(`${projectRoot.toLowerCase()}${sep}`)) {
     return new Response("Invalid media path", { status: 403 });

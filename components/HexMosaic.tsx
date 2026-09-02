@@ -6,6 +6,8 @@ import HexCard from "./HexCard";
 
 interface HexMosaicProps {
   projects: ProjectMeta[];
+  onNavigate?: (slug: string) => void;
+  launchingSlug?: string | null;
 }
 
 const CENTER_SLUG = "aiwake";
@@ -32,7 +34,11 @@ function readCssPx(name: string, fallback: number) {
   return Number.isFinite(value) ? value : fallback;
 }
 
-export default function HexMosaic({ projects }: HexMosaicProps) {
+export default function HexMosaic({
+  projects,
+  onNavigate,
+  launchingSlug,
+}: HexMosaicProps) {
   const [clusterTilt, setClusterTilt] = useState<CSSProperties>({
     transform: REST_CLUSTER,
     transition: "transform 0.25s ease-out",
@@ -70,9 +76,22 @@ export default function HexMosaic({ projects }: HexMosaicProps) {
           className="hex-cluster"
           style={{ ...clusterTilt, transformStyle: "preserve-3d" }}
         >
-          <RingSlot project={center} dx={0} dy={0} />
+          <RingSlot
+            project={center}
+            dx={0}
+            dy={0}
+            onNavigate={onNavigate}
+            launchingSlug={launchingSlug}
+          />
           {ring.map((slot) => (
-            <RingSlot key={slot.slug} project={slot.project} dx={slot.dx} dy={slot.dy} />
+            <RingSlot
+              key={slot.slug}
+              project={slot.project}
+              dx={slot.dx}
+              dy={slot.dy}
+              onNavigate={onNavigate}
+              launchingSlug={launchingSlug}
+            />
           ))}
         </div>
       )}
@@ -80,7 +99,12 @@ export default function HexMosaic({ projects }: HexMosaicProps) {
       {overflow.length > 0 && (
         <div className="flex flex-wrap justify-center gap-6" style={{ transformStyle: "preserve-3d" }}>
           {overflow.map((project) => (
-            <HexCard key={project.slug} project={project} />
+            <HexCard
+              key={project.slug}
+              project={project}
+              onNavigate={onNavigate}
+              isLaunching={launchingSlug === project.slug}
+            />
           ))}
         </div>
       )}
@@ -92,9 +116,11 @@ interface RingSlotProps {
   project: ProjectMeta;
   dx: number;
   dy: number;
+  onNavigate?: (slug: string) => void;
+  launchingSlug?: string | null;
 }
 
-function RingSlot({ project, dx, dy }: RingSlotProps) {
+function RingSlot({ project, dx, dy, onNavigate, launchingSlug }: RingSlotProps) {
   return (
     <div
       className="hex-slot"
@@ -104,7 +130,11 @@ function RingSlot({ project, dx, dy }: RingSlotProps) {
         pointerEvents: "auto",
       }}
     >
-      <HexCard project={project} />
+      <HexCard
+        project={project}
+        onNavigate={onNavigate}
+        isLaunching={launchingSlug === project.slug}
+      />
     </div>
   );
 }
