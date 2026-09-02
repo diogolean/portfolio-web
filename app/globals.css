@@ -8,20 +8,20 @@
   /* Geometry & Layout
      --hex-width: 160–280px. Height stays a regular flat-top hex (width × √3/2).
      --hex-gap: 2–8px grout. Larger values break the seamless flower. */
-  --hex-width: 220px; /* Size of each hexagon tile */
+  --hex-width: 270px; /* Size of each hexagon tile */
   --hex-height: calc(var(--hex-width) * 0.866);
-  --hex-gap: 4px; /* Grout line gap between hexagons */
+  --hex-gap: 10px; /* Grout line gap between hexagons */
   --hex-ring-distance: calc(var(--hex-height) + var(--hex-gap));
   --hex-card-padding: 1.5rem;
 
   /* 3D Motion Sensitivity — JS reads these; edit here, not in components. */
-  --global-tilt-max: 15deg; /* Max screen-wide cluster tilt angle */
-  --card-tilt-max: 25deg; /* Max hover tilt angle per card */
+  --global-tilt-max: 25deg; /* Max screen-wide cluster tilt angle */
+  --card-tilt-max: 26deg; /* Max hover tilt angle per card */
   --cluster-z: 20px; /* Cluster lift toward camera */
-  --z-bg: 0px; /* Card background stays on the floor */
-  --z-depth-text: 40px; /* Z-axis float height for text */
-  --z-depth-badges: 75px; /* Z-axis float height for status badges */
-  --card-hover-scale: 1.08;
+  --z-bg: 0px; /* Card background + cover image stay on the floor */
+  --z-depth-text: 30px; /* Title / subtitle float */
+  --z-depth-badges: 60px; /* Status badges float */
+  --card-hover-scale: 1.06;
 
   /* Palette & Glows */
   --hex-bg-color: #0f0f11; /* Default tile background */
@@ -63,11 +63,31 @@ body {
   z-index: 20;
 }
 
-.hex-frame {
+/* Static hitbox — never transformed. Mouse math is measured against this
+   box so rotate/scale on the inner frame cannot jitter the cursor sample. */
+.hex-hitbox {
   width: var(--hex-width);
   height: var(--hex-height);
   position: relative;
+  display: block;
+  pointer-events: auto;
+  cursor: pointer;
+  user-select: none;
+}
+
+.hex-frame {
+  width: 100%;
+  height: 100%;
+  position: relative;
   transform-style: preserve-3d;
+  pointer-events: none;
+}
+
+.hex-hitbox .hex-bg,
+.hex-hitbox .hex-layer-mid,
+.hex-hitbox .hex-layer-top,
+.hex-hitbox img {
+  pointer-events: none;
 }
 
 .hex-tilt {
@@ -79,28 +99,35 @@ body {
 .hex-bg {
   position: absolute;
   inset: 0;
+  overflow: hidden;
   clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
   transform: translateZ(var(--z-bg));
   background: var(--hex-bg-color);
   border-color: var(--hex-border-color);
 }
 
-.hex-bg-active {
-  border-color: color-mix(in srgb, var(--glow-active) 45%, var(--hex-border-color));
-  filter: drop-shadow(0 14px 22px color-mix(in srgb, var(--glow-active) 55%, transparent));
+.hex-cover-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgb(0 0 0 / 0.85), rgb(0 0 0 / 0.4), rgb(0 0 0 / 0.2));
 }
 
-.group:hover .hex-bg-active {
-  background: color-mix(in srgb, var(--hex-bg-color) 70%, #12161c);
+.hex-bg-active {
+  border-color: color-mix(in srgb, var(--glow-active) 45%, var(--hex-border-color));
 }
 
 .hex-bg-registry {
   border-color: color-mix(in srgb, var(--glow-registry) 35%, var(--hex-border-color));
-  filter: drop-shadow(0 10px 16px color-mix(in srgb, var(--glow-registry) 40%, transparent));
 }
 
-.group:hover .hex-bg-registry {
-  background: color-mix(in srgb, var(--hex-bg-color) 80%, #12161c);
+.hex-hitbox:hover .hex-bg-active {
+  filter: drop-shadow(0 16px 24px color-mix(in srgb, var(--glow-active) 70%, transparent));
+  border-color: color-mix(in srgb, var(--glow-active) 80%, var(--hex-border-color));
+}
+
+.hex-hitbox:hover .hex-bg-registry {
+  filter: drop-shadow(0 14px 20px color-mix(in srgb, var(--glow-registry) 60%, transparent));
+  border-color: color-mix(in srgb, var(--glow-registry) 70%, var(--hex-border-color));
 }
 
 .hex-title-active,
@@ -125,7 +152,7 @@ body {
   background: color-mix(in srgb, var(--hex-accent) 70%, transparent);
 }
 
-.group:hover .hex-accent-line {
+.hex-hitbox:hover .hex-accent-line {
   background: var(--hex-accent);
 }
 

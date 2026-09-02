@@ -5,7 +5,7 @@ import "./globals.css";
 // Two distinct roles, one family each — no default Inter/Geist stand-in.
 const plexSans = IBM_Plex_Sans({
   subsets: ["latin"],
-  weight: ["400", "500", "600"],
+  weight: ["400", "500", "600", "700"],
   variable: "--font-plex-sans",
   display: "swap",
 });

@@ -86,10 +86,25 @@ export async function getProject(slug: string): Promise<ResolvedProject | null> 
   return { meta, architecture, narrativeHtml };
 }
 
+export async function resolveCoverImage(slug: string, meta: ProjectMeta): Promise<string | null> {
+  const named = meta.cover_image ?? meta.image;
+  if (named) {
+    if (named.startsWith("/")) return named;
+    return assetUrl("images", slug, named);
+  }
+  return resolveHeroPoster(slug, null);
+}
+
 export async function getAllProjectsMeta(): Promise<ProjectMeta[]> {
   const slugs = await listProjectSlugs();
   const metas = await Promise.all(slugs.map(readProjectMeta));
-  return metas.filter((m): m is ProjectMeta => m !== null);
+  const present = metas.filter((m): m is ProjectMeta => m !== null);
+  return Promise.all(
+    present.map(async (meta) => {
+      const cover = await resolveCoverImage(meta.slug, meta);
+      return cover ? { ...meta, cover_image: cover } : meta;
+    })
+  );
 }
 
 /**

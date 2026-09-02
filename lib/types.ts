@@ -16,6 +16,8 @@ export interface ProjectMeta {
   tags: string[];
   narrative?: string[]; // md filenames, display order
   telemetry?: string; // json filename, default "architecture.json"
+  cover_image?: string; // public path or filename under /showcase/images/[slug]/
+  image?: string; // alias for cover_image
 }
 
 export interface PipelineStage {
