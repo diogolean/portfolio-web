@@ -139,6 +139,34 @@ export function assetUrl(kind: "images" | "videos" | "canvas", slug: string, fil
 }
 
 const IMAGE_EXT = /\.(png|webp|jpe?g)$/i;
+const VIDEO_EXT = /\.(mp4|webm|mov)$/i;
+
+async function firstPublicAsset(
+  kind: "images" | "videos",
+  slug: string,
+  matcher: RegExp,
+  preferredTerm?: string
+) {
+  const dir = join(process.cwd(), "public/showcase", kind, slug);
+  if (!existsSync(dir)) return null;
+  try {
+    const files = (await readdir(dir)).filter((filename) => matcher.test(filename));
+    if (!files.length) return null;
+    const preferred = preferredTerm
+      ? files.find((filename) => filename.toLowerCase().includes(preferredTerm))
+      : null;
+    return assetUrl(kind, slug, preferred ?? [...files].sort()[0]);
+  } catch {
+    return null;
+  }
+}
+
+export async function resolveHeroMedia(slug: string, architecture: ProjectArchitecture | null) {
+  const declaredVideo = assetUrl("videos", slug, architecture?.media_assets?.reel);
+  const video = declaredVideo ?? (await firstPublicAsset("videos", slug, VIDEO_EXT));
+  const poster = await resolveHeroPoster(slug, architecture);
+  return { video, poster };
+}
 
 /**
  * §5.1 Beat 1 — telemetry's `media_assets` wins when present; otherwise fall
@@ -155,14 +183,5 @@ export async function resolveHeroPoster(
     assetUrl("images", slug, architecture?.media_assets?.diagrams?.[0]);
   if (fromTelemetry) return fromTelemetry;
 
-  const dir = join(process.cwd(), "public/showcase/images", slug);
-  if (!existsSync(dir)) return null;
-  try {
-    const files = (await readdir(dir)).filter((f) => IMAGE_EXT.test(f));
-    if (files.length === 0) return null;
-    const preferred = files.find((f) => f.toLowerCase().includes("dark")) ?? [...files].sort()[0];
-    return assetUrl("images", slug, preferred);
-  } catch {
-    return null;
-  }
+  return firstPublicAsset("images", slug, IMAGE_EXT, "dark");
 }
