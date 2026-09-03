@@ -2,12 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-@keyframes spine-circuit-flow {
-  to {
-    stroke-dashoffset: -16;
-  }
-}
-
 :root {
   color-scheme: dark;
 

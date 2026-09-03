@@ -1,7 +1,7 @@
 "use client";
 
-import { motion } from "framer-motion";
 import { useLayoutEffect, useState } from "react";
+import CircuitStroke from "./CircuitStroke";
 
 interface ConduitGeometry {
   width: number;
@@ -61,25 +61,7 @@ export default function ShowcaseConduit() {
       aria-hidden
       className="pointer-events-none absolute left-0 top-0 z-[1] overflow-visible"
     >
-      <path
-        d={geometry.path}
-        fill="none"
-        stroke="rgba(16,185,129,0.28)"
-        strokeWidth="2"
-        vectorEffect="non-scaling-stroke"
-        className="drop-shadow-[0_0_5px_rgba(16,185,129,0.45)]"
-      />
-      <motion.path
-        d={geometry.path}
-        fill="none"
-        stroke="#34d399"
-        strokeWidth="1.5"
-        strokeDasharray="8 13"
-        vectorEffect="non-scaling-stroke"
-        animate={{ strokeDashoffset: [0, -42] }}
-        transition={{ duration: 1.55, repeat: Infinity, ease: "linear" }}
-        className="drop-shadow-[0_0_6px_rgba(52,211,153,0.95)]"
-      />
+      <CircuitStroke d={geometry.path} />
     </svg>
   );
 }

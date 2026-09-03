@@ -3,6 +3,7 @@
 import {
   motion,
   useMotionValue,
+  useSpring,
   useTransform,
   type MotionValue,
 } from "framer-motion";
@@ -23,13 +24,12 @@ export default function TimelineSpine({
   const axisElement = useRef<HTMLElement | null>(null);
   const anchorElements = useRef<HTMLElement[]>([]);
   const lastReportedNode = useRef<number | null>(null);
-  const beamProgress = useTransform(
+  const beamTarget = useTransform(
     [progress, geometryVersion],
     ([value]) => {
       const scrollValue = Number(value);
       const inputs = scrollStops.current;
-      const axis = axisElement.current;
-      const axisRect = axis?.getBoundingClientRect();
+      const axisRect = axisElement.current?.getBoundingClientRect();
       const outputs =
         axisRect && axisRect.height > 0
           ? anchorElements.current.map((node) => {
@@ -41,10 +41,12 @@ export default function TimelineSpine({
               ) / axisRect.height;
             })
           : pathStops.current;
+
       if (outputs.length) {
         pathStops.current = outputs;
         nodeAnchors.current = outputs;
       }
+
       let activeStop = 0;
       for (let index = 1; index < inputs.length; index++) {
         if (scrollValue >= inputs[index]) activeStop = index;
@@ -53,6 +55,16 @@ export default function TimelineSpine({
       return outputs[activeStop] ?? outputs[0];
     }
   );
+  const easedBeamProgress = useSpring(beamTarget, {
+    stiffness: 140,
+    damping: 24,
+    mass: 0.4,
+    restDelta: 0.001,
+  });
+  const beamProgress = useTransform(easedBeamProgress, (value) => {
+    const target = beamTarget.get();
+    return Math.abs(value - target) <= 0.001 ? target : value;
+  });
 
   const reportReachedNode = useCallback(
     (beamLength: number) => {
@@ -120,7 +132,8 @@ export default function TimelineSpine({
         index === 0 ? stop : Math.max(stop, stops[index - 1] + 0.0001)
       );
 
-      setAxisHeight(axisRect.height);
+      const nextHeight = Math.max(1, Math.round(axisRect.height));
+      setAxisHeight(nextHeight);
       geometryVersion.set(geometryVersion.get() + 1);
       reportReachedNode(beamProgress.get());
     };
@@ -144,26 +157,36 @@ export default function TimelineSpine({
   ]);
 
   return (
-    <div className="pointer-events-none absolute inset-y-0 left-0 w-0 -translate-x-1/2 overflow-visible">
+    <div className="pointer-events-none absolute inset-y-0 left-0 w-8 -translate-x-1/2 overflow-visible">
       <svg
-        viewBox={`0 0 2 ${axisHeight}`}
+        viewBox={`0 0 32 ${axisHeight}`}
         preserveAspectRatio="none"
         aria-hidden
-        className="absolute inset-y-0 left-1/2 h-full w-0.5 -translate-x-1/2 overflow-visible"
+        className="absolute inset-y-0 left-1/2 h-full w-8 -translate-x-1/2 overflow-visible"
       >
         <path
-          d={`M1 0 V${axisHeight}`}
+          d={`M16 0 V${axisHeight}`}
           fill="none"
-          stroke="rgba(255, 255, 255, 0.12)"
-          strokeWidth="2"
-          strokeDasharray="4 12"
+          stroke="rgba(16, 185, 129, 0.45)"
+          strokeWidth="1.5"
           vectorEffect="non-scaling-stroke"
-          className="animate-[spine-circuit-flow_1.8s_linear_infinite]"
         />
         <motion.path
-          d={`M1 0 V${axisHeight}`}
+          d={`M16 0 V${axisHeight}`}
           fill="none"
-          stroke="#34d399"
+          stroke="rgba(52, 211, 153, 0.9)"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeDasharray="10 24"
+          vectorEffect="non-scaling-stroke"
+          animate={{ strokeDashoffset: [0, -68] }}
+          transition={{ repeat: Infinity, duration: 2.8, ease: "linear" }}
+          className="drop-shadow-[0_0_6px_rgba(52,211,153,0.75)]"
+        />
+        <motion.path
+          d={`M16 0 V${axisHeight}`}
+          fill="none"
+          stroke="#10b981"
           strokeWidth="2"
           strokeLinecap="round"
           vectorEffect="non-scaling-stroke"

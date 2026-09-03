@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, useMotionValue, useScroll, useSpring } from "framer-motion";
+import { motion, useMotionValue, useScroll } from "framer-motion";
 import { useCallback, useRef, useState } from "react";
 import type { ProjectMediaAsset } from "@/lib/media-discovery";
 import type { PipelineNode } from "@/types/project";
@@ -30,11 +30,6 @@ export default function ScrollStoryline({ slug, nodes, media }: ScrollStorylineP
   const { scrollYProgress } = useScroll({
     target: containerRef,
     offset: ["start 42%", "end end"],
-  });
-  const smoothProgress = useSpring(scrollYProgress, {
-    stiffness: 400,
-    damping: 40,
-    restDelta: 0.001,
   });
   const syncNodeToBeam = useCallback((stageIndex: number) => {
     setActiveSpineIndex((current) => (current === stageIndex ? current : stageIndex));
@@ -66,7 +61,7 @@ export default function ScrollStoryline({ slug, nodes, media }: ScrollStorylineP
           <div className="relative">
             <div id="execution-graph-axis" className="relative space-y-6 pb-8">
               <TimelineSpine
-                progress={smoothProgress}
+                progress={scrollYProgress}
                 onReachedNodeChange={syncNodeToBeam}
               />
 
