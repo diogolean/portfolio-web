@@ -7,10 +7,23 @@ import { existsSync } from "fs";
 import { join } from "path";
 import matter from "gray-matter";
 import { marked } from "marked";
+import { getProjectHighlights } from "./highlight-terms";
 import type { ProjectArchitecture, ProjectMeta, ResolvedProject, GlobalTimeline } from "./types";
 
 const SHOWCASE_ROOT = join(process.cwd(), "content/showcase/projects");
 const TIMELINE_PATH = join(process.cwd(), "content/showcase/global_timeline.json");
+const PROJECT_ENGINE_PATHS: Record<string, string> = {
+  wonder_feed: "core/economic_reel_lofi",
+  aiwake: "channels_config/aiwake",
+  endless_summer_paradise: "channels_config/endless_summer_paradise",
+  anna_protocol: "channels_config/anna_protocol",
+  master_mei:
+    "channels_config/master_mei + core/reel_sequence_engine.py + agents/media/mei_narrative.py",
+  ancient_knowledge:
+    "channels_config/ancient_knowledge + core/reel_sequence_engine.py + core/wan_reel_engine.py",
+  momma_circle:
+    "channels_config/momma_circle + core/reference_reel_engine.py + agents/posting/facebook_scheduler",
+};
 
 /** §3.1 — the scan rule. Unknown slugs 404; missing folder → empty list, not a crash. */
 export async function listProjectSlugs(): Promise<string[]> {
@@ -27,7 +40,11 @@ export async function listProjectSlugs(): Promise<string[]> {
 async function readProjectMeta(slug: string): Promise<ProjectMeta | null> {
   try {
     const raw = await readFile(join(SHOWCASE_ROOT, slug, "project.json"), "utf-8");
-    return JSON.parse(raw) as ProjectMeta;
+    const meta = JSON.parse(raw) as ProjectMeta;
+    return {
+      ...meta,
+      engine_path: PROJECT_ENGINE_PATHS[meta.slug] ?? meta.engine_path,
+    };
   } catch {
     // Malformed project.json must not take down the whole registry scan.
     return null;
@@ -88,6 +105,7 @@ export async function getProject(slug: string): Promise<ResolvedProject | null> 
 
 const PROJECT_SLUG_ALIASES: Record<string, string> = {
   aiwake: "aiwake",
+  awake: "aiwake",
   master_mei: "master_mei",
   mastermei: "master_mei",
   wonder_feed: "wonder_feed",
@@ -96,9 +114,80 @@ const PROJECT_SLUG_ALIASES: Record<string, string> = {
   annas_garden: "anna_protocol",
   endless_summer_paradise: "endless_summer_paradise",
   endless_summers_paradise: "endless_summer_paradise",
+  endless_summer: "endless_summer_paradise",
   ancient_knowledge: "ancient_knowledge",
   momma_circle: "momma_circle",
 };
+
+/**
+ * Header-row highlights only — 4–5 high-demand structural AI terms.
+ * Generic libraries (Python, FFmpeg, JSON, MoviePy) stay off this surface.
+ */
+const PROJECT_TECH_STACKS: Record<string, readonly string[]> = {
+  wonder_feed: [
+    "Agent Orchestration",
+    "DSPy Optimization",
+    "GraphRAG / RAG",
+    "State Machine Router",
+    "Human Review Gates",
+  ],
+  aiwake: [
+    "Agent Orchestration",
+    "GraphRAG / RAG",
+    "State Machine Router",
+    "MCP Protocol",
+    "Dual-Model Debate",
+  ],
+  endless_summer_paradise: [
+    "Agent Orchestration",
+    "State Machine Router",
+    "Dynamic World State Engine",
+    "Quality Failsafe",
+    "SEO Metadata Graph",
+  ],
+  anna_protocol: [
+    "Agent Orchestration",
+    "GraphRAG / RAG",
+    "MCP Protocol",
+    "Persona DNA Router",
+    "VisualArchitect",
+  ],
+  master_mei: [
+    "Agent Orchestration",
+    "State Machine Router",
+    "GraphRAG / RAG",
+    "Vision Critic Loop",
+    "TTS Master Clock",
+  ],
+  ancient_knowledge: [
+    "Agent Orchestration",
+    "GraphRAG / RAG",
+    "State Machine Router",
+    "Two-Tier Pacing",
+    "WAN Reel Engine",
+  ],
+  momma_circle: [
+    "Agent Orchestration",
+    "State Machine Router",
+    "MCP Protocol",
+    "Reference Reel Loop",
+    "Browser Automation Host",
+  ],
+};
+
+const HOME_TILE_TAGS: Record<string, readonly string[]> = {
+  master_mei: ["AGENT", "LLM"],
+  aiwake: ["RAG", "Socratic"],
+  wonder_feed: ["AVATAR", "RAG"],
+  endless_summer_paradise: ["MCP", "SIMULATION"],
+  anna_protocol: ["AVATAR", "LLM"],
+  ancient_knowledge: ["GraphRAG", "LLM"],
+  momma_circle: ["WORKFLOW", "MCP"],
+};
+
+export function getProjectTechStack(slug: string): string[] {
+  return getProjectHighlights(slug, [...(PROJECT_TECH_STACKS[slug] ?? [])]);
+}
 
 /** Resolve URL-safe aliases to a registered filesystem slug without allowing path traversal. */
 export async function getProjectBySlug(slug: string): Promise<ResolvedProject | null> {
@@ -131,7 +220,12 @@ export async function getAllProjectsMeta(): Promise<ProjectMeta[]> {
   return Promise.all(
     present.map(async (meta) => {
       const cover = await resolveCoverImage(meta.slug, meta);
-      return cover ? { ...meta, cover_image: cover } : meta;
+      return {
+        ...meta,
+        status: "active" as const,
+        tags: [...(HOME_TILE_TAGS[meta.slug] ?? meta.tags)],
+        ...(cover ? { cover_image: cover } : {}),
+      };
     })
   );
 }

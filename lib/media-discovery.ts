@@ -31,7 +31,7 @@ function mediaKind(filename: string): MediaKind | null {
   return null;
 }
 
-async function newestMediaFiles(root: string, maxDepth = 4, limit = 8) {
+async function newestMediaFiles(root: string, maxDepth = 4, limit = 30) {
   if (!existsSync(root)) return [];
   const candidates: Array<{ path: string; modified: number }> = [];
 
@@ -138,7 +138,10 @@ export async function discoverProjectMediaAssets(
     });
   }
 
-  return assets.slice(0, 10);
+  return [
+    ...assets.filter((asset) => asset.kind === "video").slice(0, 5),
+    ...assets.filter((asset) => asset.kind === "image").slice(0, 18),
+  ];
 }
 
 export async function discoverProjectMedia(

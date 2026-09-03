@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useState, type CSSProperties, type MouseEvent } from "react";
 import type { ProjectMeta } from "@/lib/types";
+import { playHexHoverBeep } from "@/lib/audio-fx";
 
 interface HexCardProps {
   project: ProjectMeta;
@@ -45,6 +46,7 @@ export default function HexCard({ project, onNavigate, isLaunching = false }: He
 
   function handleMouseEnter() {
     setHovered(true);
+    playHexHoverBeep();
   }
 
   function handleMouseLeave() {
@@ -92,6 +94,10 @@ export default function HexCard({ project, onNavigate, isLaunching = false }: He
           )}
           {coverSrc && <div className="hex-cover-overlay" />}
         </div>
+        <div
+          aria-hidden
+          className="hex-sheen pointer-events-none absolute inset-0 z-20 mix-blend-overlay"
+        />
 
         <div
           className={[
@@ -100,9 +106,13 @@ export default function HexCard({ project, onNavigate, isLaunching = false }: He
           ].join(" ")}
           style={{ transform: "translateZ(var(--z-depth-text))" }}
         >
-          <span className="text-xs font-medium">{project.title}</span>
+          <span className="text-xs font-medium text-white opacity-100 drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)] [backdrop-filter:none]">
+            {project.title}
+          </span>
           {project.codename && (
-            <span className="hex-codename font-mono text-[10px]">{project.codename}</span>
+            <span className="hex-codename font-mono text-[10px] drop-shadow-[0_2px_5px_rgba(0,0,0,0.95)]">
+              {project.codename}
+            </span>
           )}
           <span
             className={[
@@ -116,12 +126,21 @@ export default function HexCard({ project, onNavigate, isLaunching = false }: He
           className="hex-layer-top absolute inset-x-0 bottom-6 z-20 flex flex-col items-center gap-1.5"
           style={{ transform: "translateZ(var(--z-depth-badges))" }}
         >
-          {!isRegistry && project.tags[0] && (
-            <span className="hex-tech-tag font-mono text-[9px]">{project.tags[0]}</span>
+          {project.tags.length > 0 && (
+            <div className="flex flex-wrap items-center justify-center gap-1">
+              {project.tags.slice(0, 2).map((tag) => (
+                <span
+                  key={tag}
+                  className="hex-tech-tag font-mono text-[9px] uppercase tracking-wider drop-shadow-[0_2px_5px_rgba(0,0,0,0.95)]"
+                >
+                  {tag}
+                </span>
+              ))}
+            </div>
           )}
           <span
             className={[
-              "rounded-full border px-2 py-0.5 font-mono text-[8px] uppercase tracking-wider",
+              "rounded-full border px-2 py-0.5 font-mono text-[8px] uppercase tracking-wider drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)]",
               isRegistry ? "hex-badge-registry" : "hex-badge-active",
             ].join(" ")}
           >

@@ -1,20 +1,8 @@
 "use client";
 
-import {
-  motion,
-  useMotionValue,
-  useSpring,
-  useTransform,
-  type MotionValue,
-} from "framer-motion";
+import { motion, useMotionValue } from "framer-motion";
 import type { MosaicAsset, PipelineNode } from "@/types/project";
-
-const POSITIONS = [
-  "-left-10 top-[12%] xl:-left-20",
-  "-right-8 top-[24%] xl:-right-16",
-  "-left-12 bottom-[24%] xl:-left-24",
-  "-right-10 bottom-[10%] xl:-right-20",
-];
+import { useT } from "./LanguageProvider";
 
 export default function MicroMosaicCloud({
   node,
@@ -23,42 +11,46 @@ export default function MicroMosaicCloud({
   node: PipelineNode;
   children: React.ReactNode;
 }) {
-  const pointerX = useMotionValue(0);
-  const pointerY = useMotionValue(0);
-  const springX = useSpring(pointerX, { stiffness: 90, damping: 18 });
-  const springY = useSpring(pointerY, { stiffness: 90, damping: 18 });
-  const assets = [
-    ...(node.mosaicAssets ?? []),
-    {
-      type: "code" as const,
-      label: "Runtime tags",
-      src: node.tags.slice(0, 4).join("\n"),
-    },
-  ].slice(0, 4);
+  const translate = useT();
+  const sourceAssets = [...(node.mosaicAssets ?? [])];
+  if (!sourceAssets.some((asset) => asset.label === "Signal envelope")) {
+    sourceAssets.push({
+      type: "audio",
+      label: "Signal envelope",
+      src: "0.12,0.38,0.74,0.46,0.91,0.62,0.28,0.68,0.42,0.18",
+    });
+  }
+  const assets = sourceAssets
+    .map((asset) => ({
+      ...asset,
+      label:
+        asset.label === "I/O contract"
+          ? translate("io_contract")
+          : asset.label === "Payload sample"
+            ? translate("payload_sample")
+            : asset.label === "Signal envelope"
+              ? translate("signal_envelope")
+              : asset.label,
+    }))
+    .slice(0, 3);
 
   return (
-    <div
-      className="relative mx-auto flex w-full max-w-xl items-center justify-center py-3 [perspective:1200px]"
-      onMouseMove={(event) => {
-        const bounds = event.currentTarget.getBoundingClientRect();
-        pointerX.set((event.clientX - bounds.left) / bounds.width - 0.5);
-        pointerY.set((event.clientY - bounds.top) / bounds.height - 0.5);
-      }}
-      onMouseLeave={() => {
-        pointerX.set(0);
-        pointerY.set(0);
-      }}
-    >
-      {children}
-      <div className="pointer-events-none absolute inset-0 hidden lg:block">
+    <div className="relative mx-auto flex w-full min-w-0 justify-center overflow-visible py-2 [perspective:1000px]">
+      <div className="relative z-10 w-[min(88vw,340px)] shrink-0">{children}</div>
+      <div className="pointer-events-none absolute inset-0 z-20 hidden overflow-visible xl:block">
         {assets.map((asset, index) => (
-          <MosaicTile
+          <div
             key={`${node.id}-${asset.label}`}
-            asset={asset}
-            index={index}
-            x={springX}
-            y={springY}
-          />
+            className={`pointer-events-auto absolute w-[clamp(6rem,8vw,7rem)] ${
+              index === 0
+                ? "-left-[10px] top-[12%]"
+                : index === 1
+                  ? "-right-[10px] top-[38%]"
+                  : "-left-[10px] bottom-[9%]"
+            }`}
+          >
+            <MosaicTile asset={asset} index={index} />
+          </div>
         ))}
       </div>
     </div>
@@ -68,34 +60,44 @@ export default function MicroMosaicCloud({
 function MosaicTile({
   asset,
   index,
-  x,
-  y,
 }: {
   asset: MosaicAsset;
   index: number;
-  x: MotionValue<number>;
-  y: MotionValue<number>;
 }) {
-  const depth = 28 + index * 10;
-  const translateX = useTransform(x, (value) => value * depth);
-  const translateY = useTransform(y, (value) => value * depth);
-  const rotateY = useTransform(x, (value) => value * 12);
-  const rotateX = useTransform(y, (value) => value * -12);
+  const rotateX = useMotionValue(0);
+  const rotateY = useMotionValue(0);
 
   return (
     <motion.div
-      style={{ x: translateX, y: translateY, rotateX, rotateY, translateZ: index * 8 }}
-      animate={{ y: [0, index % 2 ? 8 : -7, 0] }}
-      transition={{ duration: 5 + index, repeat: Infinity, ease: "easeInOut" }}
-      className={`pointer-events-auto absolute z-20 w-40 cursor-crosshair overflow-hidden border border-emerald-500/40 bg-zinc-950/90 p-4 shadow-[0_16px_40px_rgba(0,0,0,0.6)] backdrop-blur-md [clip-path:polygon(10px_0,100%_0,100%_calc(100%-10px),calc(100%-10px)_100%,0_100%,0_10px)] ${POSITIONS[index]}`}
+      initial={{ opacity: 0, y: 6 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: index * 0.05 }}
+      style={{
+        rotateX,
+        rotateY,
+        transformPerspective: 1000,
+        transformStyle: "preserve-3d",
+      }}
+      onMouseMove={(event) => {
+        const bounds = event.currentTarget.getBoundingClientRect();
+        rotateY.set(((event.clientX - bounds.left) / bounds.width - 0.5) * 12);
+        rotateX.set(((event.clientY - bounds.top) / bounds.height - 0.5) * -12);
+      }}
+      onMouseLeave={() => {
+        rotateX.set(0);
+        rotateY.set(0);
+      }}
+      className="min-w-0 overflow-hidden border border-emerald-500/30 bg-zinc-950/90 p-3 shadow-[0_10px_28px_rgba(0,0,0,0.4)] transition-shadow duration-300 hover:border-emerald-400/60 hover:shadow-[0_18px_45px_rgba(16,185,129,0.16)] [clip-path:polygon(10px_0,100%_0,100%_calc(100%-10px),calc(100%-10px)_100%,0_100%,0_10px)]"
     >
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between [transform:translateZ(18px)]">
         <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-emerald-400">
           {asset.type}
         </span>
         <span className="h-1 w-1 rounded-full bg-emerald-400" />
       </div>
-      <p className="mt-2 truncate font-mono text-xs text-zinc-200">{asset.label}</p>
+      <p className="mt-2 truncate font-mono text-xs text-zinc-200 [transform:translateZ(26px)]">
+        {asset.label}
+      </p>
       {asset.type === "audio" ? (
         <Waveform values={asset.src} />
       ) : asset.type === "image" ? (

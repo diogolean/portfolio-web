@@ -1,8 +1,10 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import type { PipelineNode } from "@/types/project";
+import { useT } from "./LanguageProvider";
 
 interface NodeDeepDiveModalProps {
   node: PipelineNode | null;
@@ -10,6 +12,11 @@ interface NodeDeepDiveModalProps {
 }
 
 export default function NodeDeepDiveModal({ node, onClose }: NodeDeepDiveModalProps) {
+  const [mounted, setMounted] = useState(false);
+  const translate = useT();
+
+  useEffect(() => setMounted(true), []);
+
   useEffect(() => {
     if (!node) return;
     const previous = document.body.style.overflow;
@@ -22,7 +29,7 @@ export default function NodeDeepDiveModal({ node, onClose }: NodeDeepDiveModalPr
     };
   }, [node, onClose]);
 
-  return (
+  const modal = (
     <AnimatePresence>
       {node && (
         <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 sm:p-8">
@@ -47,7 +54,7 @@ export default function NodeDeepDiveModal({ node, onClose }: NodeDeepDiveModalPr
           >
             <div className="sticky top-0 z-10 flex items-center justify-between border-b border-emerald-500/20 bg-zinc-950/90 px-6 py-4 backdrop-blur-xl">
               <span className="font-mono text-xs uppercase tracking-[0.2em] text-emerald-400">
-                {node.category} / node inspection
+                {node.category} / {translate("node_inspection")}
               </span>
               <button
                 type="button"
@@ -64,9 +71,23 @@ export default function NodeDeepDiveModal({ node, onClose }: NodeDeepDiveModalPr
               <h2 id="node-deep-dive-title" className="text-3xl font-semibold text-white">
                 {node.title}
               </h2>
-              <p className="mt-4 max-w-3xl text-sm leading-7 text-zinc-400">{node.description}</p>
+              <div className="mt-5 grid gap-3 lg:grid-cols-3">
+                <Panel title={translate("architecture_stack")}>
+                  <p className="font-mono text-xs leading-6 text-emerald-100/75">
+                    {node.architecture.join(" · ")}
+                  </p>
+                </Panel>
+                <Panel title={translate("production_challenge")}>
+                  <p className="text-sm leading-6 text-zinc-400">{node.problemSolved}</p>
+                </Panel>
+                <Panel title={translate("engineered_outcome")}>
+                  <p className="font-mono text-xs leading-6 text-emerald-100/75">
+                    {node.engineeredOutcome}
+                  </p>
+                </Panel>
+              </div>
 
-              <div className="mt-8 grid gap-5 lg:grid-cols-2">
+              <div className="mt-5 grid gap-5 lg:grid-cols-2">
                 <Panel title="I/O contract schema">
                   <pre className="overflow-x-auto font-mono text-xs leading-6 text-emerald-100/75">
                     {JSON.stringify(
@@ -127,6 +148,7 @@ export default function NodeDeepDiveModal({ node, onClose }: NodeDeepDiveModalPr
       )}
     </AnimatePresence>
   );
+  return mounted ? createPortal(modal, document.body) : null;
 }
 
 function Panel({ title, children }: { title: string; children: React.ReactNode }) {

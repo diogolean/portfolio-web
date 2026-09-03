@@ -1,0 +1,22 @@
+{
+  "name": "Diogo Lean Veiga",
+  "role": "AI Automation Engineer & Systems Architect",
+  "tagline": "Building autonomous video pipelines, agentic orchestration graphs, and multi-profile growth engines.",
+  "summary": "Specialist in end-to-end generative AI automation, multi-agent orchestrations, and high-throughput content pipelines.",
+  "competencies": [
+    "Agent Orchestration & State Machines",
+    "GraphRAG & Custom Knowledge Systems",
+    "Generative Media Engines (Kling, ElevenLabs, FLUX)",
+    "Automated Infrastructure & Proxy Mesh Routing"
+  ],
+  "metrics": [
+    {
+      "label": "Pipeline Automation Rate",
+      "value": "99.4%"
+    },
+    {
+      "label": "Active AI Channels Managed",
+      "value": "10+"
+    }
+  ]
+}

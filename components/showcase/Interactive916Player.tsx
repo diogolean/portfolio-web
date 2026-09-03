@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { ProjectMediaAsset } from "@/lib/media-discovery";
 import type { PipelineNode } from "@/types/project";
 
@@ -20,14 +20,20 @@ export default function Interactive916Player({
 }: Interactive916PlayerProps) {
   const frameRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const slideIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const slideTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [playing, setPlaying] = useState(true);
   const [muted, setMuted] = useState(true);
+  const [assetFilter, setAssetFilter] = useState<"all" | "video" | "image">("all");
+  const [assetIndex, setAssetIndex] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [ready, setReady] = useState(false);
   const poster = assets.find((asset) => asset.kind === "image");
-  const asset = assets.length ? assets[activeIndex % assets.length] : null;
-  const heroAsset = activeIndex === 0 ? (assets.find((item) => item.kind === "video") ?? asset) : asset;
+  const videos = assets.filter((asset) => asset.kind === "video").slice(0, 5);
+  const stills = assets.filter((asset) => asset.kind === "image").slice(0, 18);
+  const filteredAssets = assetFilter === "video" ? videos : assetFilter === "image" ? stills : [...videos, ...stills];
+  const heroAsset = filteredAssets[assetIndex % Math.max(filteredAssets.length, 1)] ?? null;
   const engine = useMemo(
     () =>
       activeNode.tags.find((tag) => /flux|gemini|llama|claude|eleven|moviepy|playwright/i.test(tag)) ??
@@ -35,20 +41,46 @@ export default function Interactive916Player({
       activeNode.category,
     [activeNode]
   );
+  const freezeTimers = useCallback(() => {
+    if (slideIntervalRef.current != null) {
+      clearInterval(slideIntervalRef.current);
+      slideIntervalRef.current = null;
+    }
+    if (slideTimeoutRef.current != null) {
+      clearTimeout(slideTimeoutRef.current);
+      slideTimeoutRef.current = null;
+    }
+  }, []);
 
   useEffect(() => {
     setReady(false);
     setCurrentTime(0);
   }, [heroAsset?.url]);
 
+  useEffect(() => {
+    if (!filteredAssets.length || !playing) return;
+    setAssetIndex(activeIndex % filteredAssets.length);
+  }, [activeIndex, assetFilter, filteredAssets.length, playing]);
+
+  useEffect(
+    () => () => {
+      freezeTimers();
+    },
+    [freezeTimers]
+  );
+
   async function togglePlayback() {
     const video = videoRef.current;
-    if (!video) return;
+    if (!video) {
+      setPlaying((value) => !value);
+      return;
+    }
     if (video.paused) {
       await video.play();
       setPlaying(true);
     } else {
       video.pause();
+      freezeTimers();
       setPlaying(false);
     }
   }
@@ -56,16 +88,28 @@ export default function Interactive916Player({
   function onLoadedMetadata() {
     const video = videoRef.current;
     if (!video) return;
+    video.volume = clampVolume(muted ? 0 : 0.3);
     setDuration(video.duration || 0);
     if (activeNode.videoTimestamp != null && Number.isFinite(video.duration)) {
       video.currentTime = Math.min(activeNode.videoTimestamp, Math.max(0, video.duration - 0.1));
     }
   }
 
+  function toggleAudio() {
+    const nextMuted = !muted;
+    freezeTimers();
+    if (videoRef.current) {
+      videoRef.current.muted = nextMuted;
+      videoRef.current.volume = clampVolume(nextMuted ? 0 : 0.3);
+      if (!nextMuted) void videoRef.current.play().catch(() => undefined);
+    }
+    setMuted(nextMuted);
+  }
+
   return (
     <div
       ref={frameRef}
-      className="relative mx-auto w-[min(78vw,20rem)] rounded-[2.6rem] border border-white/15 bg-white/[0.055] p-2.5 shadow-[0_45px_120px_rgba(0,0,0,0.7),inset_0_1px_0_rgba(255,255,255,0.14)] backdrop-blur-xl sm:w-[min(46vw,21rem)] lg:w-[min(23vw,19rem)]"
+      className="relative mx-auto w-full max-w-[340px] rounded-[2.6rem] border border-white/15 bg-white/[0.055] p-2.5 shadow-[0_45px_120px_rgba(0,0,0,0.7),inset_0_1px_0_rgba(255,255,255,0.14)] backdrop-blur-xl"
     >
       <div className="absolute left-1/2 top-4 z-30 h-5 w-20 -translate-x-1/2 rounded-full border border-white/5 bg-black/95" />
       <div className="relative aspect-[9/16] overflow-hidden rounded-[2rem] border border-black bg-zinc-950">
@@ -92,7 +136,7 @@ export default function Interactive916Player({
                 ref={videoRef}
                 src={heroAsset.url}
                 muted={muted}
-                autoPlay
+                autoPlay={playing}
                 loop
                 playsInline
                 preload="auto"
@@ -100,7 +144,10 @@ export default function Interactive916Player({
                 onLoadedMetadata={onLoadedMetadata}
                 onTimeUpdate={(event) => setCurrentTime(event.currentTarget.currentTime)}
                 onPlay={() => setPlaying(true)}
-                onPause={() => setPlaying(false)}
+                onPause={() => {
+                  freezeTimers();
+                  setPlaying(false);
+                }}
                 className="h-full w-full object-cover"
               />
             ) : heroAsset?.kind === "image" ? (
@@ -164,10 +211,10 @@ export default function Interactive916Player({
                     {playing ? "Ⅱ" : "▶"}
                   </ControlButton>
                   <ControlButton
-                    label={muted ? "Unmute" : "Mute"}
-                    onClick={() => setMuted((value) => !value)}
+                    label={muted ? "Unmute audio" : "Mute audio"}
+                    onClick={toggleAudio}
                   >
-                    {muted ? "MUTE" : "AUDIO"}
+                    <VolumeIcon muted={muted} />
                   </ControlButton>
                 </div>
                 <span className="font-mono text-[9px] text-zinc-400">
@@ -182,6 +229,61 @@ export default function Interactive916Player({
               </div>
             </div>
           )}
+        </div>
+      </div>
+
+      <div className="px-2 pb-1 pt-3">
+        <div className="flex items-center justify-between gap-2">
+          <button
+            type="button"
+            onClick={() =>
+              setAssetIndex((index) => (index - 1 + filteredAssets.length) % filteredAssets.length)
+            }
+            disabled={filteredAssets.length < 2}
+            aria-label="Previous media asset"
+            className="h-8 w-8 border border-zinc-700 font-mono text-sm text-zinc-300 disabled:opacity-30"
+          >
+            &lt;
+          </button>
+          <div className="flex min-w-0 flex-1 justify-center gap-1">
+            {filteredAssets.slice(0, 9).map((asset, index) => (
+              <button
+                key={asset.url}
+                type="button"
+                onClick={() => setAssetIndex(index)}
+                aria-label={`Show ${asset.filename}`}
+                className={`h-1 flex-1 transition ${
+                  index === assetIndex % filteredAssets.length ? "bg-emerald-400" : "bg-zinc-700"
+                }`}
+              />
+            ))}
+          </div>
+          <button
+            type="button"
+            onClick={() => setAssetIndex((index) => (index + 1) % filteredAssets.length)}
+            disabled={filteredAssets.length < 2}
+            aria-label="Next media asset"
+            className="h-8 w-8 border border-zinc-700 font-mono text-sm text-zinc-300 disabled:opacity-30"
+          >
+            &gt;
+          </button>
+        </div>
+        <div className="mt-2 flex justify-center gap-3 font-mono text-[9px] text-zinc-500">
+          <button
+            type="button"
+            onClick={() => setAssetFilter("video")}
+            className={assetFilter === "video" ? "text-emerald-300" : "hover:text-zinc-300"}
+          >
+            VIDEOS ({videos.length})
+          </button>
+          <span>|</span>
+          <button
+            type="button"
+            onClick={() => setAssetFilter("image")}
+            className={assetFilter === "image" ? "text-emerald-300" : "hover:text-zinc-300"}
+          >
+            STILLS ({stills.length})
+          </button>
         </div>
       </div>
     </div>
@@ -209,6 +311,34 @@ function ControlButton({
   );
 }
 
+function VolumeIcon({ muted }: { muted: boolean }) {
+  return (
+    <svg
+      viewBox="0 0 20 20"
+      aria-hidden
+      className="h-3.5 w-3.5"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M3 8h3l4-3v10l-4-3H3z" />
+      {muted ? (
+        <>
+          <path d="m13 8 4 4" />
+          <path d="m17 8-4 4" />
+        </>
+      ) : (
+        <>
+          <path d="M13 7.5a3.5 3.5 0 0 1 0 5" />
+          <path d="M15 5.5a6.2 6.2 0 0 1 0 9" />
+        </>
+      )}
+    </svg>
+  );
+}
+
 function TechnicalFallback({ node }: { node: PipelineNode }) {
   return (
     <div className="flex h-full items-center justify-center bg-[radial-gradient(circle_at_center,rgba(16,185,129,0.16),transparent_45%),linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:auto,24px_24px,24px_24px]">
@@ -229,4 +359,8 @@ function formatTime(seconds: number) {
   return `${minutes}:${Math.floor(seconds % 60)
     .toString()
     .padStart(2, "0")}`;
+}
+
+function clampVolume(value: number) {
+  return Math.max(0, Math.min(1, Number.isFinite(value) ? value : 0));
 }

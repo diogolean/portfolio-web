@@ -11,11 +11,16 @@ export interface PipelineNode {
   title: string;
   category: PipelineCategory;
   description: string;
+  architecture: string[];
+  problemSolved: string;
+  engineeredOutcome: string;
   ioContract: {
     input: string;
     output: string;
   };
   tags: string[];
+  primaryTags: string[];
+  secondaryTags: string[];
   videoTimestamp?: number;
   mosaicAssets?: MosaicAsset[];
   payloadSample?: Record<string, unknown>;

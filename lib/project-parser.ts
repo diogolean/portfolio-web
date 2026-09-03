@@ -1,4 +1,6 @@
+import { loadFactorySettingsV4, type FactoryRuntimeSpec } from "./factory-settings";
 import type { ProjectArchitecture, ResolvedProject } from "./types";
+import { getProjectTechStack } from "./registry";
 
 export type ArchitectureNodeKind =
   | "orchestrator"
@@ -62,41 +64,71 @@ function node(
   };
 }
 
-const PROJECT_BLUEPRINTS: Record<string, ProjectBlueprint> = {
-  endless_summer_paradise: {
-    stack: ["Python", "Reference ingest", "ffprobe", "YouTube API", "Durable JSON queue"],
+function espBlueprint(settings: FactoryRuntimeSpec): ProjectBlueprint {
+  const shortForm = settings.shortFormTargets.join(" / ") || "youtube_shorts";
+  const longForm = settings.longFormTargets.join(" / ") || "youtube";
+  return {
+    stack: [
+      "Agent Orchestration",
+      "State Machine Router",
+      "Dynamic World State Engine",
+      "Quality Failsafe",
+      "SEO Metadata Graph",
+    ],
     challenge:
-      "Long-form reference masters arrive without guaranteed runtime or publish metadata and must become policy-safe scheduled YouTube assets.",
+      "Autonomous media agents must coordinate mutable world state, environmental physics, material behavior, and platform-specific delivery contracts without allowing invalid simulation or publishing states to propagate.",
     outcome:
-      "A zero-generation ingest pipeline that gates master quality, quarantines metadata gaps, and schedules approved videos at controlled intervals.",
+      "A factory-synced orchestration graph that simulates custom weather, light, material, scene, and timing parameters, then validates each state transition before routing assets into automated short- and long-form platform contracts.",
     nodes: [
       node(
         "master-scanner",
-        "Ultimate Master Scanner",
+        "Agentic Orchestration & State Graph",
         "orchestrator",
-        "Scans the configured production directory for canonical *_ULTIMATE_MASTER.mp4 assets without generating new media.",
-        ["Filesystem scan", "REFERENCE_BASED_REELS", "VideoAsset"],
-        "ProductionDirectory → MasterCandidates[]",
-        { glob: "*_ULTIMATE_MASTER.mp4", generation: false, aspect_ratio: "16:9" },
-        "I/O-bound"
+        "Coordinates specialized planning, simulation, media, QA, and delivery agents through a durable state graph, preserving factory-authored constraints while rejecting off-contract assets and invalid transitions.",
+        ["Multi-Agent Loop", "State Machine Router", "Durable Execution Graph"],
+        "FactoryWorldSpec → OrchestratedProductionState",
+        {
+          agents: ["planner", "world_simulator", "media_builder", "quality_critic", "publisher"],
+          state_policy: "validated_transitions_only",
+          source_contract: "*_ULTIMATE_MASTER.mp4 + factory scene packs",
+          aspect_ratio: settings.aspectRatio,
+        },
+        "State-transition bound"
       ),
       node(
         "duration-gate",
-        "40-Second Duration Gate",
+        "Dynamic World State & Parameter Simulation Engine",
         "media",
-        "Probes each master and rejects assets whose runtime does not exceed the channel’s minimum duration.",
-        ["ffprobe", "Runtime policy", "Fail-closed gate"],
-        "MasterCandidates[] → QualifiedMasters[]",
-        { condition: "duration_s > 40", reject_at_or_below_s: 40 },
-        "One probe / asset"
+        `Simulates customizable scene worlds across ${settings.sceneCount} scenes × ${settings.videoDurationS}s, resolving dynamic material physics, weather, lighting, camera, timing, and ${settings.aspectRatio} output constraints before platform-specific assembly.`,
+        ["World State Simulation", "Dynamic Material Physics", "Environment Parameter Graph"],
+        "OrchestratedProductionState → ValidatedWorldStates[]",
+        {
+          scene_count: settings.sceneCount,
+          beat_duration_s: settings.videoDurationS,
+          assembled_runtime_s: settings.assembledRuntimeS,
+          aspect_ratio: settings.aspectRatio,
+          environment: {
+            weather: "customizable",
+            light_conditions: "time_and_scene_driven",
+            material_physics: settings.outputParameters.liquid_viscosity ?? "dynamic",
+          },
+          extended_scenes: settings.extendedScenes,
+          short_form: shortForm,
+          long_form: longForm,
+          quality_failsafe: settings.qualityFailsafe,
+          platform_contracts: [...settings.shortFormTargets, ...settings.longFormTargets],
+          output_parameters: settings.outputParameters,
+          source: settings.sourcePath ? "factory_settings_v4.json" : "factory_settings_v4 defaults",
+        },
+        "Simulation + policy bound"
       ),
       node(
         "metadata-mapper",
         "Global Library Metadata Mapper",
         "rag",
-        "Resolves each qualified filename against the global video library and materializes a typed VideoAsset record.",
-        ["global_video_library.json", "VideoAsset dataclass", "Asset map"],
-        "QualifiedMasters[] → ResolvedVideoAssets[]",
+        "Grounds each validated world-state artifact against the global media knowledge graph and materializes a typed, platform-contract-aware VideoAsset record.",
+        ["GraphRAG / RAG", "global_video_library.json", "VideoAsset dataclass"],
+        "ValidatedWorldStates[] → ResolvedVideoAssets[]",
         { fields: ["filename", "duration_s", "title", "description", "tags", "status"] },
         "Local lookup"
       ),
@@ -105,7 +137,7 @@ const PROJECT_BLUEPRINTS: Record<string, ProjectBlueprint> = {
         "Missing Metadata Quarantine",
         "queue",
         "Moves unresolved masters into a needs_metadata state instead of allowing incomplete uploads into the schedule.",
-        ["needs_metadata queue", "Fail-closed state", "esp_asset_map.json"],
+        ["State Machine Router", "needs_metadata queue", "esp_asset_map.json"],
         "UnresolvedMasters[] → MetadataWorkQueue",
         { state: "needs_metadata", publishable: false },
         "Immediate"
@@ -115,9 +147,14 @@ const PROJECT_BLUEPRINTS: Record<string, ProjectBlueprint> = {
         "US SEO Metadata Packager",
         "model",
         "Builds channel-safe title, description, tag, and disclaimer packs from approved Endless Summer DNA.",
-        ["Master DNA", "YouTube metadata", "Travel disclaimer"],
+        ["Agent Loop", "seo_metadata_usa_high_rpm", "factory_settings_v4"],
         "ResolvedVideoAssets[] → UploadPackages[]",
-        { locale: "en-US", includes: ["title", "description", "tags", "disclaimer"] },
+        {
+          locale: "en-US",
+          includes: ["title", "description", "tags", "disclaimer"],
+          short_form: shortForm,
+          long_form: longForm,
+        },
         "Per asset"
       ),
       node(
@@ -131,7 +168,10 @@ const PROJECT_BLUEPRINTS: Record<string, ProjectBlueprint> = {
         "API-bound"
       ),
     ],
-  },
+  };
+}
+
+const PROJECT_BLUEPRINTS: Record<string, ProjectBlueprint> = {
   anna_protocol: {
     stack: ["Gemini VisualArchitect", "IMAGE_AVATAR", "Persona DNA", "Pinterest", "3:4 render"],
     challenge:
@@ -312,9 +352,20 @@ const PROJECT_BLUEPRINTS: Record<string, ProjectBlueprint> = {
         "Stage 4 — Media Production",
         "media",
         "Generates FLUX stills, runs per-beat visual critics, synthesizes ElevenLabs voice, and assembles the MoviePy reel.",
-        ["FLUX.1-dev CFG 5.5", "Gemini Visual QA", "ElevenLabs", "MoviePy"],
+        [
+          "FLUX.1-schnell (default)",
+          "FLUX.1-dev CFG 5.5 (opt-in)",
+          "Gemini Per-Beat QA",
+          "ElevenLabs",
+          "MoviePy",
+        ],
         "ApprovedPrompts[] → CandidateReel",
-        { image: "FLUX.1-dev", voice_speed: 0.8, visual_qa: "per_beat" },
+        {
+          image_default: "FLUX.1-schnell",
+          image_opt_in: "FLUX.1-dev",
+          voice_speed: 0.8,
+          visual_qa: "per_beat",
+        },
         "Media-bound"
       ),
       node(
@@ -375,6 +426,20 @@ const PROJECT_BLUEPRINTS: Record<string, ProjectBlueprint> = {
         "TimedActPlan → ApprovedAncientScenes[]",
         { model: "FLUX.1-schnell", remote_lora: "optional", contamination_guard: true },
         "Image API-bound"
+      ),
+      node(
+        "wan-animated-branch",
+        "Optional WAN Animated Reel Branch",
+        "media",
+        "Activates the channel’s WAN_REEL path to convert approved ancient-world stills into timed image-to-video scene clips without changing the default sequence-reel path.",
+        ["WAN_REEL config", "core/wan_reel_engine.py", "Wan2.2 img2vid"],
+        "ApprovedAncientScenes[] + WANSceneConfig → AnimatedSceneClips[]",
+        {
+          optional: true,
+          scene_duration: "channel-configured",
+          activation: "WAN_REEL_* settings",
+        },
+        "Remote GPU-bound"
       ),
       node(
         "parallax-builder",
@@ -488,10 +553,15 @@ const PROJECT_BLUEPRINTS: Record<string, ProjectBlueprint> = {
         "dual-model-debate",
         "Dual-Model Debate Runtime",
         "model",
-        "Alternates the Gemini orchestrator and Llama target behind provider-neutral model strategies.",
-        ["Gemini", "Llama 70B", "OpenRouter"],
+        "Runs the configured GPT-4o orchestrator and Gemini Flash target behind provider-neutral strategies; aliases allow Llama, DeepSeek, Claude, and Gemini variants without changing the room.",
+        ["GPT-4o", "Gemini Flash", "OpenRouter", "Provider aliases"],
         "PrivateRoleContext → ValidatedDebateTurns",
-        { orchestrator: "gemini", target: "llama-70b", retry_on_guard: true },
+        {
+          orchestrator_default: "gpt4o",
+          target_default: "gemini-flash",
+          available_aliases: ["llama-70b", "deepseek-r1", "claude-sonnet", "gemini-pro"],
+          retry_on_guard: true,
+        },
         "1.5–10 s / turn"
       ),
       node(
@@ -529,7 +599,14 @@ const PROJECT_BLUEPRINTS: Record<string, ProjectBlueprint> = {
 };
 
 function unique(values: Array<string | undefined | null>) {
-  return [...new Set(values.filter((value): value is string => Boolean(value)))];
+  const seen = new Set<string>();
+  return values.filter((value): value is string => {
+    if (!value) return false;
+    const key = value.trim().toLowerCase();
+    if (!key || seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
 }
 
 function formatDuration(seconds?: number) {
@@ -592,7 +669,10 @@ function enrichNodes(nodes: ArchitectureNode[], architecture: ProjectArchitectur
 
 export function parseProjectShowcase(project: ResolvedProject): EngineeringShowcase {
   const { meta, architecture } = project;
-  const blueprint = PROJECT_BLUEPRINTS[meta.slug];
+  const blueprint =
+    meta.slug === "endless_summer_paradise"
+      ? espBlueprint(loadFactorySettingsV4())
+      : PROJECT_BLUEPRINTS[meta.slug];
   if (!blueprint) {
     throw new Error(`No project-specific architecture blueprint registered for "${meta.slug}"`);
   }
@@ -602,6 +682,7 @@ export function parseProjectShowcase(project: ResolvedProject): EngineeringShowc
     ...Object.values(architecture?.models ?? {}).map((model) => model.split("/").at(-1)),
     ...(architecture?.agents ?? []).map((agent) => agent.provider),
   ]);
+  const registeredStack = getProjectTechStack(meta.slug);
   const telemetry = architecture?.milestones?.length
     ? [...architecture.milestones]
         .sort((a, b) => a.t_s - b.t_s)
@@ -618,7 +699,7 @@ export function parseProjectShowcase(project: ResolvedProject): EngineeringShowc
 
   return {
     slug: meta.slug,
-    stack: unique([...liveStack, ...blueprint.stack]).slice(0, 8),
+    stack: unique(registeredStack.length ? registeredStack : [...liveStack, ...blueprint.stack]),
     productionCost: "$0.04 / output min target",
     processingTime: formatDuration(architecture?.pipeline_execution_s),
     challenge: blueprint.challenge,

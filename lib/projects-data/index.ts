@@ -1,4 +1,5 @@
 import type { ResolvedProject } from "@/lib/types";
+import { classifyArchitectureTags } from "@/lib/highlight-terms";
 import { parseProjectShowcase, type ArchitectureNodeKind } from "@/lib/project-parser";
 import type {
   MosaicAsset,
@@ -16,6 +17,16 @@ const CATEGORY_MAP: Record<ArchitectureNodeKind, PipelineCategory> = {
   queue: "INFRA",
   delivery: "INFRA",
 };
+
+function uniqueTags(values: string[]) {
+  const seen = new Set<string>();
+  return values.filter((value) => {
+    const key = value.trim().toLowerCase();
+    if (!key || seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
 
 function splitContract(contract: string) {
   const [input, output] = contract.split(/\s*→\s*/, 2);
@@ -54,13 +65,21 @@ function toPipelineNode(
   node: ReturnType<typeof parseProjectShowcase>["nodes"][number],
   index: number
 ): PipelineNode {
+  const ioContract = splitContract(node.contract);
+  const architecture = uniqueTags(node.technologies);
+  const { primary, secondary } = classifyArchitectureTags(architecture, node.kind);
   return {
     id: node.id,
     title: node.title,
     category: CATEGORY_MAP[node.kind],
     description: node.summary,
-    ioContract: splitContract(node.contract),
-    tags: node.technologies,
+    architecture,
+    problemSolved: node.responsibility,
+    engineeredOutcome: `${ioContract.output} · ${node.latency}`,
+    ioContract,
+    tags: architecture,
+    primaryTags: primary,
+    secondaryTags: secondary,
     videoTimestamp: index * 4,
     mosaicAssets: mosaicAssets(node),
     payloadSample: node.payload,
