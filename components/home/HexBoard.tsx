@@ -1,24 +1,29 @@
 "use client";
 
-import { AnimatePresence, motion } from "framer-motion";
-import { useRouter } from "next/navigation";
+import { motion } from "framer-motion";
+import { useRef } from "react";
 import { useState } from "react";
 import type { ProjectMeta } from "@/lib/types";
 import HexMosaic from "@/components/HexMosaic";
-import HexTransitionLoader from "@/components/showcase/HexTransitionLoader";
+import { usePageTransition } from "@/components/PageTransition";
 
 export default function HexBoard({ projects }: { projects: ProjectMeta[] }) {
-  const router = useRouter();
+  const { navigate } = usePageTransition();
+  const launchingRef = useRef(false);
   const [launchingSlug, setLaunchingSlug] = useState<string | null>(null);
 
   function launch(slug: string) {
-    if (launchingSlug) return;
+    if (launchingRef.current) return;
+    launchingRef.current = true;
     setLaunchingSlug(slug);
-    window.setTimeout(() => router.push(`/projects/${slug}`), 620);
+    navigate(
+      `/projects/${slug}`,
+      `INITIALIZING ${slug.replaceAll("_", " ").toUpperCase()} AGENT...`
+    );
   }
 
   return (
-    <>
+    <div>
       <motion.div
         animate={{
           opacity: launchingSlug ? 0 : 1,
@@ -45,11 +50,6 @@ export default function HexBoard({ projects }: { projects: ProjectMeta[] }) {
           <HexMosaic projects={projects} launchingSlug={launchingSlug} />
         </div>
       </motion.div>
-      <AnimatePresence>
-        {launchingSlug && (
-          <HexTransitionLoader status={`INITIALIZING ${launchingSlug.toUpperCase()} AGENT...`} />
-        )}
-      </AnimatePresence>
-    </>
+    </div>
   );
 }

@@ -1,40 +1,177 @@
 "use client";
 
-import { motion, type MotionValue } from "framer-motion";
+import {
+  motion,
+  useMotionValue,
+  useTransform,
+  type MotionValue,
+} from "framer-motion";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 
-export default function TimelineSpine({ progress }: { progress: MotionValue<number> }) {
+export default function TimelineSpine({
+  progress,
+  onReachedNodeChange,
+}: {
+  progress: MotionValue<number>;
+  onReachedNodeChange: (stageIndex: number) => void;
+}) {
+  const [axisHeight, setAxisHeight] = useState(1);
+  const geometryVersion = useMotionValue(0);
+  const scrollStops = useRef([0, 1]);
+  const pathStops = useRef([0, 1]);
+  const nodeAnchors = useRef<number[]>([]);
+  const axisElement = useRef<HTMLElement | null>(null);
+  const anchorElements = useRef<HTMLElement[]>([]);
+  const lastReportedNode = useRef<number | null>(null);
+  const beamProgress = useTransform(
+    [progress, geometryVersion],
+    ([value]) => {
+      const scrollValue = Number(value);
+      const inputs = scrollStops.current;
+      const axis = axisElement.current;
+      const axisRect = axis?.getBoundingClientRect();
+      const outputs =
+        axisRect && axisRect.height > 0
+          ? anchorElements.current.map((node) => {
+              const nodeRect = node.getBoundingClientRect();
+              return (
+                nodeRect.top -
+                axisRect.top +
+                nodeRect.height / 2
+              ) / axisRect.height;
+            })
+          : pathStops.current;
+      if (outputs.length) {
+        pathStops.current = outputs;
+        nodeAnchors.current = outputs;
+      }
+      let activeStop = 0;
+      for (let index = 1; index < inputs.length; index++) {
+        if (scrollValue >= inputs[index]) activeStop = index;
+        else break;
+      }
+      return outputs[activeStop] ?? outputs[0];
+    }
+  );
+
+  const reportReachedNode = useCallback(
+    (beamLength: number) => {
+      let reachedVisualNode = 0;
+      for (let index = 1; index < nodeAnchors.current.length; index++) {
+        if (beamLength >= nodeAnchors.current[index]) reachedVisualNode = index;
+        else break;
+      }
+      const stageIndex = reachedVisualNode - 1;
+      if (lastReportedNode.current === stageIndex) return;
+      lastReportedNode.current = stageIndex;
+      onReachedNodeChange(stageIndex);
+    },
+    [onReachedNodeChange]
+  );
+
+  useEffect(
+    () => beamProgress.on("change", reportReachedNode),
+    [beamProgress, reportReachedNode]
+  );
+
+  useLayoutEffect(() => {
+    const axis = document.getElementById("execution-graph-axis");
+    const headerNode = document.getElementById("execution-graph-header");
+    const storyline = axis?.closest("section");
+    if (!axis || !headerNode || !storyline) return;
+    axisElement.current = axis;
+
+    const update = () => {
+      const axisRect = axis.getBoundingClientRect();
+      const headerNodeRect = headerNode.getBoundingClientRect();
+      const storylineRect = storyline.getBoundingClientRect();
+      const headerNodeCenter =
+        headerNodeRect.top - axisRect.top + headerNodeRect.height / 2;
+      const stageNodes = Array.from(
+        axis.querySelectorAll<HTMLElement>('[id^="stage-node-"]')
+      );
+      anchorElements.current = [headerNode, ...stageNodes];
+      const anchors = [
+        headerNodeCenter / axisRect.height,
+        ...stageNodes.map((node) => {
+          const rect = node.getBoundingClientRect();
+          return (rect.top - axisRect.top + rect.height / 2) / axisRect.height;
+        }),
+      ];
+      nodeAnchors.current = anchors;
+      pathStops.current = anchors;
+
+      const scrollRange = Math.max(
+        1,
+        storylineRect.height - window.innerHeight + window.innerHeight * 0.42
+      );
+      const storylineStartY =
+        window.scrollY + storylineRect.top - window.innerHeight * 0.42;
+      const measuredStops = stageNodes.map((node) => {
+        const rect = node.getBoundingClientRect();
+        const activationScrollY =
+          window.scrollY + rect.top - window.innerHeight * 0.42;
+        return Math.min(
+          1,
+          Math.max(0, (activationScrollY - storylineStartY) / scrollRange)
+        );
+      });
+      scrollStops.current = [0, ...measuredStops].map((stop, index, stops) =>
+        index === 0 ? stop : Math.max(stop, stops[index - 1] + 0.0001)
+      );
+
+      setAxisHeight(axisRect.height);
+      geometryVersion.set(geometryVersion.get() + 1);
+      reportReachedNode(beamProgress.get());
+    };
+
+    update();
+    const observer = new ResizeObserver(update);
+    observer.observe(axis);
+    observer.observe(headerNode);
+    for (const node of axis.querySelectorAll<HTMLElement>('[id^="stage-node-"]')) {
+      observer.observe(node);
+    }
+    window.addEventListener("resize", update);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("resize", update);
+    };
+  }, [
+    beamProgress,
+    geometryVersion,
+    reportReachedNode,
+  ]);
+
   return (
-    <div className="pointer-events-none absolute bottom-8 left-0 top-0 w-0 -translate-x-1/2 overflow-visible">
+    <div className="pointer-events-none absolute inset-y-0 left-0 w-0 -translate-x-1/2 overflow-visible">
       <svg
-        viewBox="0 0 2 100"
+        viewBox={`0 0 2 ${axisHeight}`}
         preserveAspectRatio="none"
         aria-hidden
         className="absolute inset-y-0 left-1/2 h-full w-0.5 -translate-x-1/2 overflow-visible"
       >
         <path
-          d="M1 0 V100"
+          d={`M1 0 V${axisHeight}`}
           fill="none"
-          stroke="rgba(16,185,129,0.3)"
-          strokeWidth="1.5"
+          stroke="rgba(255, 255, 255, 0.12)"
+          strokeWidth="2"
+          strokeDasharray="4 12"
           vectorEffect="non-scaling-stroke"
-          className="drop-shadow-[0_0_5px_rgba(16,185,129,0.45)]"
+          className="animate-[spine-circuit-flow_1.8s_linear_infinite]"
         />
         <motion.path
-          d="M1 0 V100"
+          d={`M1 0 V${axisHeight}`}
           fill="none"
           stroke="#34d399"
-          strokeWidth="1.5"
-          strokeDasharray="7 12"
+          strokeWidth="2"
+          strokeLinecap="round"
           vectorEffect="non-scaling-stroke"
-          animate={{ strokeDashoffset: [0, -38] }}
-          transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
-          className="drop-shadow-[0_0_6px_rgba(52,211,153,0.95)]"
+          initial={false}
+          style={{ pathLength: beamProgress }}
+          className="drop-shadow-[0_0_8px_rgba(52,211,153,0.95)]"
         />
       </svg>
-      <motion.span
-        style={{ scaleY: progress }}
-        className="absolute inset-y-0 left-1/2 w-0.5 -translate-x-1/2 origin-top bg-emerald-300/70 shadow-[0_0_10px_rgba(52,211,153,0.9)]"
-      />
     </div>
   );
 }

@@ -21,13 +21,15 @@ export default async function ProjectHero({ meta, architecture }: ProjectHeroPro
         <div className="relative mt-10 aspect-video w-full overflow-hidden rounded-lg border border-hairline bg-chrome">
           {reelUrl ? (
             <video
-              src={reelUrl}
               muted
               loop
               playsInline
               autoPlay
+              preload="metadata"
               className="h-full w-full object-cover motion-reduce:hidden"
-            />
+            >
+              <source src={reelUrl} type={reelUrl.endsWith(".webm") ? "video/webm" : "video/mp4"} />
+            </video>
           ) : posterUrl ? (
             // Intrinsic size matches the container's `aspect-video` (16:9) ratio;
             // CSS then stretches it to fill — avoids layout shift while staying responsive.

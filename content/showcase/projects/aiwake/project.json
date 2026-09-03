@@ -1,7 +1,7 @@
 {
   "slug": "aiwake",
   "title": "Aiwake",
-  "codename": "Socratic debate engine",
+  "codename": "Autonomous Multi-Agent Debate Engine",
   "status": "active",
   "summary": "Two-seat LLM debate under hard guardrails, rendered as a 9:16 terminal reel. Optional event-bus telemetry; engine runs if this folder is deleted.",
   "engine_path": "channels_config/aiwake",

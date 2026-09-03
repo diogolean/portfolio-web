@@ -2,6 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
+@keyframes spine-circuit-flow {
+  to {
+    stroke-dashoffset: -16;
+  }
+}
+
 :root {
   color-scheme: dark;
 
@@ -13,6 +19,7 @@
   --hex-gap: 10px; /* Grout line gap between hexagons */
   --hex-ring-distance: calc(var(--hex-height) + var(--hex-gap));
   --hex-card-padding: 1.5rem;
+  --hex-mosaic-scale: 1;
 
   /* 3D Motion Sensitivity — JS reads these; edit here, not in components. */
   --global-tilt-max: 25deg; /* Max screen-wide cluster tilt angle */
@@ -119,18 +126,26 @@ html {
 .hex-cover-overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(to top, rgb(0 0 0 / 0.85), rgb(0 0 0 / 0.4), rgb(0 0 0 / 0.2));
+  background: linear-gradient(to top, rgb(0 0 0 / 0.72), rgb(0 0 0 / 0.22), transparent 58%);
 }
 
-.hex-sheen {
-  clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
-  background: linear-gradient(
-    135deg,
-    transparent 18%,
-    rgb(255 255 255 / 0.25) 46%,
-    rgb(255 255 255 / 0.05) 68%,
-    transparent 86%
-  );
+@media (max-width: 639px) {
+  :root {
+    --hex-width: 210px;
+    --hex-gap: 6px;
+    --hex-card-padding: 0.75rem;
+    --hex-mosaic-scale: 0.62;
+  }
+}
+
+@media (min-width: 640px) and (max-width: 767px) {
+  :root {
+    --hex-mosaic-scale: 0.85;
+  }
+}
+
+.hex-mosaic-scale {
+  transform-origin: center;
 }
 
 .hex-bg-active {

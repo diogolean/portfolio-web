@@ -1,3 +1,5 @@
+import { readEngineGitLog } from "@/lib/git-commits";
+
 interface GitHubCommit {
   sha: string;
   commit: {
@@ -21,30 +23,43 @@ interface TelemetryCommit {
 
 const FALLBACK_COMMITS: TelemetryCommit[] = [
   {
-    sha: "8f4c2a1",
-    message: "Refine agentic execution graph and project telemetry",
+    sha: "b3e91c4",
+    message: "Tune factory_settings_v4 world-state simulation defaults",
     author: "diogolean",
-    date: new Date(Date.now() - 42 * 60 * 1000).toISOString(),
+    date: new Date(Date.now() - 38 * 60 * 1000).toISOString(),
   },
   {
-    sha: "31bd7e9",
-    message: "Add JSON-driven executive profile and system metrics",
+    sha: "71af2d8",
+    message: "Harden multi-agent orchestration graph transition guards",
     author: "diogolean",
-    date: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(),
+    date: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
   },
   {
-    sha: "c90a4d6",
-    message: "Calibrate showcase conduit and responsive media layout",
+    sha: "e04c9b1",
+    message: "Sync TTS master clock with sequence reel compositor",
     author: "diogolean",
-    date: new Date(Date.now() - 26 * 60 * 60 * 1000).toISOString(),
+    date: new Date(Date.now() - 22 * 60 * 60 * 1000).toISOString(),
   },
 ];
 
-async function loadCommits(): Promise<{ commits: TelemetryCommit[]; live: boolean; branch: string }> {
-  const configuredRepo = process.env.NEXT_PUBLIC_GITHUB_REPO ?? "diogolean/portfolio-web";
+async function loadCommits(): Promise<{
+  commits: TelemetryCommit[];
+  source: "local" | "github" | "fallback";
+  branch: string;
+}> {
+  const localLog = readEngineGitLog(5);
+  if (localLog) {
+    return {
+      commits: localLog.commits,
+      source: "local",
+      branch: localLog.branch,
+    };
+  }
+
+  const configuredRepo = process.env.NEXT_PUBLIC_GITHUB_REPO ?? "diogolean/omni-engine";
   const repo = /^[\w.-]+\/[\w.-]+$/.test(configuredRepo)
     ? configuredRepo
-    : "diogolean/portfolio-web";
+    : "diogolean/omni-engine";
   const branch = process.env.NEXT_PUBLIC_GITHUB_BRANCH ?? "main";
   const headers: Record<string, string> = {
     Accept: "application/vnd.github+json",
@@ -67,14 +82,14 @@ async function loadCommits(): Promise<{ commits: TelemetryCommit[]; live: boolea
       date: item.commit.author.date,
     }));
     if (!commits.length) throw new Error("GitHub returned no commits");
-    return { commits, live: true, branch };
+    return { commits, source: "github", branch };
   } catch {
-    return { commits: FALLBACK_COMMITS, live: false, branch };
+    return { commits: FALLBACK_COMMITS, source: "fallback", branch };
   }
 }
 
 export default async function GitHubTelemetry() {
-  const { commits, live, branch } = await loadCommits();
+  const { commits, source, branch } = await loadCommits();
 
   return (
     <section
@@ -85,11 +100,15 @@ export default async function GitHubTelemetry() {
         <div className="flex min-w-0 items-center gap-3">
           <span className="h-2 w-2 shrink-0 animate-pulse rounded-full bg-emerald-400 shadow-[0_0_12px_rgba(52,211,153,0.8)]" />
           <span className="truncate text-[10px] uppercase tracking-[0.18em] text-emerald-300">
-            Live system telemetry / recent commits
+            Live system telemetry / omni-engine
           </span>
         </div>
         <span className="text-[9px] uppercase tracking-wider text-zinc-600">
-          {live ? "GitHub live" : "Offline cache"}
+          {source === "local"
+            ? "Engine repository"
+            : source === "github"
+              ? "GitHub live"
+              : "Offline cache"}
         </span>
       </div>
 

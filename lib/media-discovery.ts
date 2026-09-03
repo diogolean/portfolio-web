@@ -4,7 +4,7 @@ import { existsSync } from "fs";
 import { readdir, stat } from "fs/promises";
 import { extname, join, relative, sep } from "path";
 import type { ProjectArchitecture } from "./types";
-import { resolveHeroMedia } from "./registry";
+import { listPublicVideoUrls, resolveHeroMedia } from "./registry";
 
 export type MediaKind = "video" | "image";
 
@@ -104,6 +104,14 @@ export async function discoverProjectMediaAssets(
       source: "public",
     });
   }
+  for (const url of await listPublicVideoUrls(slug)) {
+    add({
+      kind: "video",
+      url,
+      filename: url.split("/").at(-1) ?? "output.mp4",
+      source: "public",
+    });
+  }
 
   const publicOutputRoot = join(process.cwd(), "public", "outputs", slug);
   for (const output of await newestMediaFiles(publicOutputRoot)) {
@@ -116,16 +124,19 @@ export async function discoverProjectMediaAssets(
     });
   }
 
-  const roots = getProjectMediaRoots(slug);
-  for (const [rootIndex, root] of roots.entries()) {
-    for (const output of await newestMediaFiles(root)) {
-      const relativePath = relative(root, output).split(sep).join("/");
-      add({
-        kind: mediaKind(output) ?? "image",
-        url: `/api/showcase-media/${slug}?root=${rootIndex}&file=${encodeURIComponent(relativePath)}`,
-        filename: output.split(sep).at(-1) ?? "output",
-        source: "external",
-      });
+  if (process.env.NODE_ENV !== "production") {
+    const roots = getProjectMediaRoots(slug);
+    for (const [rootIndex, root] of roots.entries()) {
+      if (!existsSync(root)) continue;
+      for (const output of await newestMediaFiles(root)) {
+        const relativePath = relative(root, output).split(sep).join("/");
+        add({
+          kind: mediaKind(output) ?? "image",
+          url: `/api/showcase-media/${slug}?root=${rootIndex}&file=${encodeURIComponent(relativePath)}`,
+          filename: output.split(sep).at(-1) ?? "output",
+          source: "external",
+        });
+      }
     }
   }
 

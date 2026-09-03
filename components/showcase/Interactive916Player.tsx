@@ -5,6 +5,12 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { ProjectMediaAsset } from "@/lib/media-discovery";
 import type { PipelineNode } from "@/types/project";
 
+function videoMimeFromUrl(url: string) {
+  if (/\.webm(?:$|\?)/i.test(url)) return "video/webm";
+  if (/\.mov(?:$|\?)/i.test(url)) return "video/quicktime";
+  return "video/mp4";
+}
+
 interface Interactive916PlayerProps {
   assets: ProjectMediaAsset[];
   activeNode: PipelineNode;
@@ -29,6 +35,7 @@ export default function Interactive916Player({
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [ready, setReady] = useState(false);
+  const [isInViewport, setIsInViewport] = useState(false);
   const poster = assets.find((asset) => asset.kind === "image");
   const videos = assets.filter((asset) => asset.kind === "video").slice(0, 5);
   const stills = assets.filter((asset) => asset.kind === "image").slice(0, 18);
@@ -56,6 +63,17 @@ export default function Interactive916Player({
     setReady(false);
     setCurrentTime(0);
   }, [heroAsset?.url]);
+
+  useEffect(() => {
+    const frame = frameRef.current;
+    if (!frame) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => setIsInViewport(entry.isIntersecting),
+      { threshold: 0.1 }
+    );
+    observer.observe(frame);
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     if (!filteredAssets.length || !playing) return;
@@ -131,15 +149,15 @@ export default function Interactive916Player({
             transition={{ duration: 0.4 }}
             className="absolute inset-0"
           >
-            {heroAsset?.kind === "video" ? (
+            {heroAsset?.kind === "video" && isInViewport ? (
               <video
                 ref={videoRef}
-                src={heroAsset.url}
+                poster={poster?.url}
                 muted={muted}
                 autoPlay={playing}
                 loop
                 playsInline
-                preload="auto"
+                preload="metadata"
                 onCanPlay={() => setReady(true)}
                 onLoadedMetadata={onLoadedMetadata}
                 onTimeUpdate={(event) => setCurrentTime(event.currentTarget.currentTime)}
@@ -148,6 +166,15 @@ export default function Interactive916Player({
                   freezeTimers();
                   setPlaying(false);
                 }}
+                className="h-full w-full object-cover"
+              >
+                <source src={heroAsset.url} type={videoMimeFromUrl(heroAsset.url)} />
+              </video>
+            ) : heroAsset?.kind === "video" && poster ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={poster.url}
+                alt={`${slug} preview poster`}
                 className="h-full w-full object-cover"
               />
             ) : heroAsset?.kind === "image" ? (

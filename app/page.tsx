@@ -9,7 +9,7 @@ export default async function HomePage() {
 
   return (
     <HomeAtmosphere>
-    <main className="mx-auto flex min-h-screen max-w-5xl flex-col items-center px-6 pt-6 sm:pt-10 pb-24">
+    <main className="mx-auto flex min-h-screen max-w-5xl flex-col items-center overflow-x-clip px-6 pt-6 sm:pt-10 pb-24">
       <p className="mb-1 font-mono text-xs uppercase tracking-widest text-emerald-400 drop-shadow-[0_0_6px_rgba(52,211,153,0.25)]">
         omni-engine
       </p>
@@ -21,9 +21,11 @@ export default async function HomePage() {
         are built — not a CMS.
       </p>
 
-      <div className="mt-16">
+      <div className="mt-16 w-full overflow-x-clip">
         {projects.length > 0 ? (
-          <HexBoard projects={projects} />
+          <div className="hex-mosaic-scale mx-auto flex origin-center justify-center transition-transform scale-[0.62] sm:scale-[0.85] md:scale-100 max-sm:-my-[19%] sm:max-md:-my-[7%]">
+            <HexBoard projects={projects} />
+          </div>
         ) : (
           <p className="text-sm text-muted">No channels registered yet.</p>
         )}

@@ -10,7 +10,6 @@ interface HexagonNodeCardProps {
   index: number;
   total: number;
   active: boolean;
-  onActivate: () => void;
   onOpen: () => void;
 }
 
@@ -19,7 +18,6 @@ export default function HexagonNodeCard({
   index,
   total,
   active,
-  onActivate,
   onOpen,
 }: HexagonNodeCardProps) {
   const rotateX = useMotionValue(0);
@@ -33,8 +31,7 @@ export default function HexagonNodeCard({
       id={`stage-node-${index + 1}`}
       initial={{ opacity: 0.25, y: 18 }}
       whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ amount: 0.48, margin: "-8% 0px -18% 0px" }}
-      onViewportEnter={onActivate}
+      viewport={{ amount: 0.35, margin: "-12% 0px -20% 0px" }}
       transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
       className="relative scroll-mt-24"
     >

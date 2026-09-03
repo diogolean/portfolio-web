@@ -39,7 +39,6 @@ export default function ProjectHeroPlayer({
         <div className="group relative aspect-[4/5] overflow-hidden rounded-2xl border border-neutral-800 bg-neutral-950 shadow-2xl shadow-black/40 sm:aspect-video">
           {video ? (
             <video
-              src={video}
               poster={poster ?? undefined}
               controls
               muted
@@ -48,7 +47,12 @@ export default function ProjectHeroPlayer({
               autoPlay
               preload="metadata"
               className="h-full w-full object-cover"
-            />
+            >
+              <source
+                src={video}
+                type={video.endsWith(".webm") ? "video/webm" : video.endsWith(".mov") ? "video/quicktime" : "video/mp4"}
+              />
+            </video>
           ) : poster ? (
             <Image
               src={poster}

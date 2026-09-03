@@ -175,9 +175,13 @@ const PROJECT_TECH_STACKS: Record<string, readonly string[]> = {
   ],
 };
 
+const HOME_TILE_CODENAMES: Record<string, string> = {
+  aiwake: "Autonomous Multi-Agent Debate Engine",
+};
+
 const HOME_TILE_TAGS: Record<string, readonly string[]> = {
   master_mei: ["AGENT", "LLM"],
-  aiwake: ["RAG", "Socratic"],
+  aiwake: ["LLM", "MCP"],
   wonder_feed: ["AVATAR", "RAG"],
   endless_summer_paradise: ["MCP", "SIMULATION"],
   anna_protocol: ["AVATAR", "LLM"],
@@ -224,6 +228,9 @@ export async function getAllProjectsMeta(): Promise<ProjectMeta[]> {
         ...meta,
         status: "active" as const,
         tags: [...(HOME_TILE_TAGS[meta.slug] ?? meta.tags)],
+        ...(HOME_TILE_CODENAMES[meta.slug]
+          ? { codename: HOME_TILE_CODENAMES[meta.slug] }
+          : {}),
         ...(cover ? { cover_image: cover } : {}),
       };
     })
@@ -254,15 +261,64 @@ export async function getGlobalTimeline(): Promise<GlobalTimeline> {
   }
 }
 
-/** §3.3 — resolve a public asset path; never trust absolute machine paths from telemetry. */
+/** Public web path, CDN URL, or null. Machine paths are never returned. */
 export function assetUrl(kind: "images" | "videos" | "canvas", slug: string, filename?: string) {
   if (!filename) return null;
-  if (/^https?:/i.test(filename)) return null; // reject remote URLs per §3.3
-  return `/showcase/${kind}/${slug}/${filename}`;
+  const trimmed = filename.trim();
+  if (/^https?:\/\//i.test(trimmed)) return trimmed;
+  if (trimmed.startsWith("/")) return trimmed;
+  return `/showcase/${kind}/${slug}/${trimmed}`;
 }
 
 const IMAGE_EXT = /\.(png|webp|jpe?g)$/i;
 const VIDEO_EXT = /\.(mp4|webm|mov)$/i;
+
+export function publicAssetExists(url: string) {
+  if (/^https?:\/\//i.test(url)) return true;
+  if (!url.startsWith("/")) return false;
+  return existsSync(join(process.cwd(), "public", ...url.replace(/^\//, "").split("/")));
+}
+
+export function videoMimeType(url: string) {
+  if (/\.webm(?:$|\?)/i.test(url)) return "video/webm";
+  if (/\.mov(?:$|\?)/i.test(url)) return "video/quicktime";
+  return "video/mp4";
+}
+
+async function listPublicDir(kind: "images" | "videos", slug: string, matcher: RegExp) {
+  const roots = [
+    {
+      dir: join(process.cwd(), "public/showcase", kind, slug),
+      prefix: `/showcase/${kind}/${slug}`,
+      flat: false,
+    },
+    {
+      dir: join(process.cwd(), "public", kind, slug),
+      prefix: `/${kind}/${slug}`,
+      flat: false,
+    },
+    {
+      dir: join(process.cwd(), "public", kind),
+      prefix: `/${kind}`,
+      flat: true,
+    },
+  ];
+  const urls: string[] = [];
+  for (const { dir, prefix, flat } of roots) {
+    if (!existsSync(dir)) continue;
+    try {
+      const files = (await readdir(dir)).filter(
+        (filename) =>
+          matcher.test(filename) &&
+          (!flat || filename.replace(/\.[^.]+$/, "") === slug)
+      );
+      for (const filename of files) urls.push(`${prefix}/${filename}`);
+    } catch {
+      // Directory can disappear while CI is still copying artifacts.
+    }
+  }
+  return urls;
+}
 
 async function firstPublicAsset(
   kind: "images" | "videos",
@@ -270,23 +326,25 @@ async function firstPublicAsset(
   matcher: RegExp,
   preferredTerm?: string
 ) {
-  const dir = join(process.cwd(), "public/showcase", kind, slug);
-  if (!existsSync(dir)) return null;
-  try {
-    const files = (await readdir(dir)).filter((filename) => matcher.test(filename));
-    if (!files.length) return null;
-    const preferred = preferredTerm
-      ? files.find((filename) => filename.toLowerCase().includes(preferredTerm))
-      : null;
-    return assetUrl(kind, slug, preferred ?? [...files].sort()[0]);
-  } catch {
-    return null;
-  }
+  const files = await listPublicDir(kind, slug, matcher);
+  if (!files.length) return null;
+  const preferred = preferredTerm
+    ? files.find((url) => url.toLowerCase().includes(preferredTerm))
+    : null;
+  return preferred ?? files[0];
+}
+
+export async function listPublicVideoUrls(slug: string) {
+  return listPublicDir("videos", slug, VIDEO_EXT);
 }
 
 export async function resolveHeroMedia(slug: string, architecture: ProjectArchitecture | null) {
   const declaredVideo = assetUrl("videos", slug, architecture?.media_assets?.reel);
-  const video = declaredVideo ?? (await firstPublicAsset("videos", slug, VIDEO_EXT));
+  const declaredOk =
+    declaredVideo && (declaredVideo.startsWith("http") || publicAssetExists(declaredVideo))
+      ? declaredVideo
+      : null;
+  const video = declaredOk ?? (await firstPublicAsset("videos", slug, VIDEO_EXT));
   const poster = await resolveHeroPoster(slug, architecture);
   return { video, poster };
 }
@@ -304,7 +362,13 @@ export async function resolveHeroPoster(
   const fromTelemetry =
     assetUrl("images", slug, architecture?.media_assets?.poster) ??
     assetUrl("images", slug, architecture?.media_assets?.diagrams?.[0]);
-  if (fromTelemetry) return fromTelemetry;
+  if (fromTelemetry && publicAssetExists(fromTelemetry)) return fromTelemetry;
+
+  const videoPosterExtensions = ["webp", "jpg", "jpeg", "png"];
+  for (const extension of videoPosterExtensions) {
+    const videoPoster = `/videos/posters/${slug}.${extension}`;
+    if (publicAssetExists(videoPoster)) return videoPoster;
+  }
 
   return firstPublicAsset("images", slug, IMAGE_EXT, "dark");
 }

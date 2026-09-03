@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { IBM_Plex_Sans, IBM_Plex_Mono } from "next/font/google";
+import PageTransition from "@/components/PageTransition";
 import "./globals.css";
 
 // Two distinct roles, one family each — no default Inter/Geist stand-in.
@@ -26,7 +27,9 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${plexSans.variable} ${plexMono.variable}`}>
-      <body className="font-sans antialiased">{children}</body>
+      <body className="font-sans antialiased">
+        <PageTransition>{children}</PageTransition>
+      </body>
     </html>
   );
 }

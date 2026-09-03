@@ -1,7 +1,12 @@
 "use client";
 
 import Image from "next/image";
-import { useState, type CSSProperties, type MouseEvent } from "react";
+import {
+  useState,
+  type CSSProperties,
+  type MouseEvent,
+  type PointerEvent,
+} from "react";
 import type { ProjectMeta } from "@/lib/types";
 import { playHexHoverBeep } from "@/lib/audio-fx";
 
@@ -57,14 +62,22 @@ export default function HexCard({ project, onNavigate, isLaunching = false }: He
     });
   }
 
+  function handlePointerDown(event: PointerEvent<HTMLButtonElement>) {
+    if (event.button !== 0) return;
+    onNavigate?.(project.slug);
+  }
+
   return (
     <button
       type="button"
-      onClick={() => onNavigate?.(project.slug)}
+      onPointerDown={handlePointerDown}
+      onClick={(event) => {
+        if (event.detail === 0) onNavigate?.(project.slug);
+      }}
       onMouseMove={handleMouseMove}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
-      className="hex-hitbox border-0 bg-transparent p-0 text-inherit"
+      className="hex-hitbox cursor-pointer select-none border-0 bg-transparent p-0 text-inherit pointer-events-auto"
       data-hovered={hovered || undefined}
       suppressHydrationWarning
     >
@@ -94,10 +107,6 @@ export default function HexCard({ project, onNavigate, isLaunching = false }: He
           )}
           {coverSrc && <div className="hex-cover-overlay" />}
         </div>
-        <div
-          aria-hidden
-          className="hex-sheen pointer-events-none absolute inset-0 z-20 mix-blend-overlay"
-        />
 
         <div
           className={[

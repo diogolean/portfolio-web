@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, useMotionValue, useScroll, useSpring, useTransform } from "framer-motion";
+import { motion, useMotionValue, useScroll, useSpring } from "framer-motion";
 import { useCallback, useRef, useState } from "react";
 import type { ProjectMediaAsset } from "@/lib/media-discovery";
 import type { PipelineNode } from "@/types/project";
@@ -22,16 +22,26 @@ interface ScrollStorylineProps {
 export default function ScrollStoryline({ slug, nodes, media }: ScrollStorylineProps) {
   const containerRef = useRef<HTMLElement>(null);
   const [activeIndex, setActiveIndex] = useState(0);
+  const [activeSpineIndex, setActiveSpineIndex] = useState(-1);
   const [selectedNode, setSelectedNode] = useState<PipelineNode | null>(null);
   const closeModal = useCallback(() => setSelectedNode(null), []);
   const translate = useT();
+  const activeNode = nodes[activeIndex] ?? nodes[0];
   const { scrollYProgress } = useScroll({
     target: containerRef,
-    offset: ["start 70%", "end 65%"],
+    offset: ["start 42%", "end end"],
   });
-  const progress = useSpring(scrollYProgress, { stiffness: 120, damping: 28, mass: 0.25 });
-  const spineScale = useTransform(progress, [0, 1], [0, 1]);
-  const activeNode = nodes[activeIndex] ?? nodes[0];
+  const smoothProgress = useSpring(scrollYProgress, {
+    stiffness: 400,
+    damping: 40,
+    restDelta: 0.001,
+  });
+  const syncNodeToBeam = useCallback((stageIndex: number) => {
+    setActiveSpineIndex((current) => (current === stageIndex ? current : stageIndex));
+    if (stageIndex >= 0) {
+      setActiveIndex((current) => (current === stageIndex ? current : stageIndex));
+    }
+  }, []);
 
   return (
     <section ref={containerRef} className="relative px-5 pb-20 pt-2 sm:px-8 lg:px-12 lg:pb-28">
@@ -55,13 +65,17 @@ export default function ScrollStoryline({ slug, nodes, media }: ScrollStorylineP
 
           <div className="relative">
             <div id="execution-graph-axis" className="relative space-y-6 pb-8">
-              <TimelineSpine progress={spineScale} />
+              <TimelineSpine
+                progress={smoothProgress}
+                onReachedNodeChange={syncNodeToBeam}
+              />
 
               <ExecutionGraphHeader
                 eyebrow={translate("execution_graph")}
                 title={translate("follow_data_path")}
                 hint={translate("execution_graph_hint")}
                 total={nodes.length}
+                active={activeSpineIndex === -1}
               />
 
               {nodes.map((item, index) => (
@@ -70,8 +84,7 @@ export default function ScrollStoryline({ slug, nodes, media }: ScrollStorylineP
                   node={item}
                   index={index}
                   total={nodes.length}
-                  active={index === activeIndex}
-                  onActivate={() => setActiveIndex(index)}
+                  active={index === activeSpineIndex}
                   onOpen={() => {
                     setActiveIndex(index);
                     setSelectedNode(item);
@@ -92,18 +105,20 @@ function ExecutionGraphHeader({
   title,
   hint,
   total,
+  active,
 }: {
   eyebrow: string;
   title: string;
   hint: string;
   total: number;
+  active: boolean;
 }) {
   const rotateX = useMotionValue(0);
   const rotateY = useMotionValue(0);
 
   return (
-    <article className="relative">
-      <SpineJunction active />
+    <article id="execution-graph-header" className="relative">
+      <SpineJunction active={active} lineActive={active} />
 
       <motion.div
         style={{ rotateX, rotateY, transformPerspective: 1000, transformStyle: "preserve-3d" }}
