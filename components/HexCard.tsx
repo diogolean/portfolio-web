@@ -185,7 +185,10 @@ export default function HexCard({ project, onNavigate, isLaunching = false }: He
           )}
           <span
             className={[
-              "rounded-full border px-2 py-0.5 font-mono text-[8px] uppercase tracking-wider drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)]",
+              "rounded-full border px-2 py-0.5 font-mono text-[8px] uppercase tracking-wider",
+              isRegistry
+                ? "drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)]"
+                : "text-emerald-400 drop-shadow-[0_0_6px_rgba(52,211,153,0.35)]",
               isRegistry ? "hex-badge-registry" : "hex-badge-active",
             ].join(" ")}
           >

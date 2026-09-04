@@ -26,6 +26,7 @@ export default async function ProjectHero({ meta, architecture }: ProjectHeroPro
               playsInline
               autoPlay
               preload="metadata"
+              crossOrigin={/^https?:\/\//i.test(reelUrl) ? undefined : "anonymous"}
               className="h-full w-full object-cover motion-reduce:hidden"
             >
               <source src={reelUrl} type={reelUrl.endsWith(".webm") ? "video/webm" : "video/mp4"} />

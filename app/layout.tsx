@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { IBM_Plex_Sans, IBM_Plex_Mono } from "next/font/google";
+import Header from "@/components/layout/Header";
 import PageTransition from "@/components/PageTransition";
 import "./globals.css";
 
@@ -28,6 +29,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={`${plexSans.variable} ${plexMono.variable}`}>
       <body className="font-sans antialiased">
+        <Header />
         <PageTransition>{children}</PageTransition>
       </body>
     </html>

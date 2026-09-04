@@ -46,6 +46,7 @@ export default function ProjectHeroPlayer({
               playsInline
               autoPlay
               preload="metadata"
+              crossOrigin={/^https?:\/\//i.test(video) ? undefined : "anonymous"}
               className="h-full w-full object-cover"
             >
               <source

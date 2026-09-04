@@ -45,14 +45,16 @@ export default function Interactive916Player({
   const [duration, setDuration] = useState(0);
   const [ready, setReady] = useState(false);
   const [isInViewport, setIsInViewport] = useState(false);
+  const [failedAssetUrls, setFailedAssetUrls] = useState<Set<string>>(() => new Set());
   const poster = stills[0] ?? assets.find((asset) => asset.kind === "image");
+  const availableVideos = videos.filter((asset) => !failedAssetUrls.has(asset.url));
   const filteredAssets = isCarousel
     ? stills
     : assetFilter === "video"
-      ? videos
+      ? availableVideos
       : assetFilter === "image"
         ? stills
-        : [...videos, ...stills];
+        : [...availableVideos, ...stills];
   const heroAsset = filteredAssets[assetIndex % Math.max(filteredAssets.length, 1)] ?? null;
   const engine = useMemo(
     () =>
@@ -189,8 +191,17 @@ export default function Interactive916Player({
                 loop
                 playsInline
                 preload="metadata"
+                crossOrigin={heroAsset.source === "external" ? undefined : "anonymous"}
                 onCanPlay={() => setReady(true)}
                 onLoadedMetadata={onLoadedMetadata}
+                onError={() => {
+                  setReady(false);
+                  setFailedAssetUrls((failed) => {
+                    const next = new Set(failed);
+                    next.add(heroAsset.url);
+                    return next;
+                  });
+                }}
                 onTimeUpdate={(event) => setCurrentTime(event.currentTarget.currentTime)}
                 onPlay={() => setPlaying(true)}
                 onPause={() => {
