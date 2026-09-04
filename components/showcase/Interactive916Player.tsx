@@ -3,6 +3,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { ProjectMediaAsset } from "@/lib/media-discovery";
+import type { ProjectMediaKind } from "@/lib/types";
 import type { PipelineNode } from "@/types/project";
 
 function videoMimeFromUrl(url: string) {
@@ -16,6 +17,7 @@ interface Interactive916PlayerProps {
   activeNode: PipelineNode;
   activeIndex: number;
   slug: string;
+  mediaKind?: ProjectMediaKind;
 }
 
 export default function Interactive916Player({
@@ -23,23 +25,34 @@ export default function Interactive916Player({
   activeNode,
   activeIndex,
   slug,
+  mediaKind = "video",
 }: Interactive916PlayerProps) {
   const frameRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const slideIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const slideTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const videos = assets.filter((asset) => asset.kind === "video").slice(0, 5);
+  const stills = assets.filter((asset) => asset.kind === "image").slice(0, 18);
+  const isCarousel =
+    mediaKind === "carousel" || mediaKind === "image" || (videos.length === 0 && stills.length > 0);
   const [playing, setPlaying] = useState(true);
   const [muted, setMuted] = useState(true);
-  const [assetFilter, setAssetFilter] = useState<"all" | "video" | "image">("all");
+  const [assetFilter, setAssetFilter] = useState<"all" | "video" | "image">(
+    isCarousel ? "image" : "all"
+  );
   const [assetIndex, setAssetIndex] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [ready, setReady] = useState(false);
   const [isInViewport, setIsInViewport] = useState(false);
-  const poster = assets.find((asset) => asset.kind === "image");
-  const videos = assets.filter((asset) => asset.kind === "video").slice(0, 5);
-  const stills = assets.filter((asset) => asset.kind === "image").slice(0, 18);
-  const filteredAssets = assetFilter === "video" ? videos : assetFilter === "image" ? stills : [...videos, ...stills];
+  const poster = stills[0] ?? assets.find((asset) => asset.kind === "image");
+  const filteredAssets = isCarousel
+    ? stills
+    : assetFilter === "video"
+      ? videos
+      : assetFilter === "image"
+        ? stills
+        : [...videos, ...stills];
   const heroAsset = filteredAssets[assetIndex % Math.max(filteredAssets.length, 1)] ?? null;
   const engine = useMemo(
     () =>
@@ -76,9 +89,27 @@ export default function Interactive916Player({
   }, []);
 
   useEffect(() => {
-    if (!filteredAssets.length || !playing) return;
+    if (!isCarousel) return;
+    setAssetFilter("image");
+  }, [isCarousel]);
+
+  useEffect(() => {
+    if (!filteredAssets.length) return;
     setAssetIndex(activeIndex % filteredAssets.length);
-  }, [activeIndex, assetFilter, filteredAssets.length, playing]);
+  }, [activeIndex, assetFilter, filteredAssets.length]);
+
+  useEffect(() => {
+    if (!isCarousel || !playing || filteredAssets.length < 2) return;
+    slideIntervalRef.current = setInterval(() => {
+      setAssetIndex((index) => (index + 1) % filteredAssets.length);
+    }, 4200);
+    return () => {
+      if (slideIntervalRef.current != null) {
+        clearInterval(slideIntervalRef.current);
+        slideIntervalRef.current = null;
+      }
+    };
+  }, [isCarousel, playing, filteredAssets.length, heroAsset?.url]);
 
   useEffect(
     () => () => {
@@ -149,7 +180,7 @@ export default function Interactive916Player({
             transition={{ duration: 0.4 }}
             className="absolute inset-0"
           >
-            {heroAsset?.kind === "video" && isInViewport ? (
+            {heroAsset?.kind === "video" && !isCarousel && isInViewport ? (
               <video
                 ref={videoRef}
                 poster={poster?.url}
@@ -170,20 +201,27 @@ export default function Interactive916Player({
               >
                 <source src={heroAsset.url} type={videoMimeFromUrl(heroAsset.url)} />
               </video>
-            ) : heroAsset?.kind === "video" && poster ? (
+            ) : heroAsset?.kind === "video" && !isCarousel && poster ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={poster.url}
                 alt={`${slug} preview poster`}
                 className="h-full w-full object-cover"
               />
-            ) : heroAsset?.kind === "image" ? (
+            ) : heroAsset?.kind === "image" || (isCarousel && stills[0]) ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={heroAsset.url}
-                alt={`${slug} ${activeNode.title} artifact`}
+              <motion.img
+                src={(heroAsset?.kind === "image" ? heroAsset.url : stills[0]?.url) ?? ""}
+                alt={`${slug} ${activeNode.title} artwork`}
                 onLoad={() => setReady(true)}
-                className="h-full w-full object-cover"
+                initial={{ opacity: 0, scale: 1.04 }}
+                animate={{ opacity: 1, scale: 1.12 }}
+                exit={{ opacity: 0 }}
+                transition={{
+                  opacity: { duration: 0.45, ease: "easeOut" },
+                  scale: { duration: 4.2, ease: "linear" },
+                }}
+                className="h-full w-full origin-center object-cover"
               />
             ) : (
               <TechnicalFallback node={activeNode} />
@@ -192,8 +230,9 @@ export default function Interactive916Player({
         </AnimatePresence>
 
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/50 via-transparent to-black/85" />
+        <div className="pointer-events-none absolute inset-x-0 top-0 z-10 h-1/3 bg-gradient-to-b from-white/12 via-white/[0.03] to-transparent" />
         <div className="absolute inset-x-0 top-0 z-20 flex flex-wrap gap-1.5 p-4 pt-9">
-          {["1080×1920", "30 FPS", engine].map((badge) => (
+          {(isCarousel ? ["1080×1440", "CAROUSEL", engine] : ["1080×1920", "30 FPS", engine]).map((badge) => (
             <span
               key={badge}
               className="rounded-full border border-emerald-500/35 bg-zinc-950/80 px-2.5 py-1 font-mono text-[9px] uppercase tracking-wider text-emerald-300 backdrop-blur"
@@ -216,7 +255,7 @@ export default function Interactive916Player({
             <p className="mt-1 text-sm font-medium text-white">{activeNode.title}</p>
           </motion.div>
 
-          {heroAsset?.kind === "video" && (
+          {heroAsset?.kind === "video" && !isCarousel && (
             <div className="rounded-xl border border-white/10 bg-zinc-950/75 p-2.5 backdrop-blur-md">
               <input
                 type="range"
@@ -246,6 +285,30 @@ export default function Interactive916Player({
                 </div>
                 <span className="font-mono text-[9px] text-zinc-400">
                   {formatTime(currentTime)} / {formatTime(duration)}
+                </span>
+                <ControlButton
+                  label="Enter fullscreen"
+                  onClick={() => frameRef.current?.requestFullscreen?.()}
+                >
+                  ⛶
+                </ControlButton>
+              </div>
+            </div>
+          )}
+          {isCarousel && stills.length > 0 && (
+            <div className="rounded-xl border border-white/10 bg-zinc-950/75 p-2.5 backdrop-blur-md">
+              <div className="flex items-center justify-between">
+                <div className="flex gap-1.5">
+                  <ControlButton
+                    label={playing ? "Pause carousel" : "Play carousel"}
+                    onClick={() => setPlaying((value) => !value)}
+                  >
+                    {playing ? "Ⅱ" : "▶"}
+                  </ControlButton>
+                </div>
+                <span className="font-mono text-[9px] text-zinc-400">
+                  {String((assetIndex % Math.max(stills.length, 1)) + 1).padStart(2, "0")} /{" "}
+                  {String(stills.length).padStart(2, "0")}
                 </span>
                 <ControlButton
                   label="Enter fullscreen"
@@ -296,21 +359,27 @@ export default function Interactive916Player({
           </button>
         </div>
         <div className="mt-2 flex justify-center gap-3 font-mono text-[9px] text-zinc-500">
-          <button
-            type="button"
-            onClick={() => setAssetFilter("video")}
-            className={assetFilter === "video" ? "text-emerald-300" : "hover:text-zinc-300"}
-          >
-            VIDEOS ({videos.length})
-          </button>
-          <span>|</span>
-          <button
-            type="button"
-            onClick={() => setAssetFilter("image")}
-            className={assetFilter === "image" ? "text-emerald-300" : "hover:text-zinc-300"}
-          >
-            STILLS ({stills.length})
-          </button>
+          {isCarousel ? (
+            <span className="text-emerald-300">ARTWORK ({stills.length})</span>
+          ) : (
+            <>
+              <button
+                type="button"
+                onClick={() => setAssetFilter("video")}
+                className={assetFilter === "video" ? "text-emerald-300" : "hover:text-zinc-300"}
+              >
+                VIDEOS ({videos.length})
+              </button>
+              <span>|</span>
+              <button
+                type="button"
+                onClick={() => setAssetFilter("image")}
+                className={assetFilter === "image" ? "text-emerald-300" : "hover:text-zinc-300"}
+              >
+                STILLS ({stills.length})
+              </button>
+            </>
+          )}
         </div>
       </div>
     </div>

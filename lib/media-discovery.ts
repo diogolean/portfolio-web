@@ -4,7 +4,12 @@ import { existsSync } from "fs";
 import { readdir, stat } from "fs/promises";
 import { extname, join, relative, sep } from "path";
 import type { ProjectArchitecture } from "./types";
-import { listPublicVideoUrls, resolveHeroMedia } from "./registry";
+import {
+  getProjectCarouselImages,
+  isImageOnlyProject,
+  listPublicVideoUrls,
+  resolveHeroMedia,
+} from "./registry";
 
 export type MediaKind = "video" | "image";
 
@@ -96,7 +101,18 @@ export async function discoverProjectMediaAssets(
   };
 
   const publicMedia = await resolveHeroMedia(slug, architecture);
-  if (publicMedia.video) {
+  const imageOnly = isImageOnlyProject(slug);
+
+  for (const url of getProjectCarouselImages(slug)) {
+    add({
+      kind: "image",
+      url,
+      filename: url.split("/").at(-1) ?? "still.webp",
+      source: "public",
+    });
+  }
+
+  if (!imageOnly && publicMedia.video) {
     add({
       kind: "video",
       url: publicMedia.video,
@@ -104,20 +120,24 @@ export async function discoverProjectMediaAssets(
       source: /^https?:\/\//i.test(publicMedia.video) ? "external" : "public",
     });
   }
-  for (const url of await listPublicVideoUrls(slug)) {
-    add({
-      kind: "video",
-      url,
-      filename: url.split("/").at(-1) ?? "output.mp4",
-      source: /^https?:\/\//i.test(url) ? "external" : "public",
-    });
+  if (!imageOnly) {
+    for (const url of await listPublicVideoUrls(slug)) {
+      add({
+        kind: "video",
+        url,
+        filename: url.split("/").at(-1) ?? "output.mp4",
+        source: /^https?:\/\//i.test(url) ? "external" : "public",
+      });
+    }
   }
 
   const publicOutputRoot = join(process.cwd(), "public", "outputs", slug);
   for (const output of await newestMediaFiles(publicOutputRoot)) {
+    const kind = mediaKind(output) ?? "image";
+    if (imageOnly && kind === "video") continue;
     const relativePath = relative(join(process.cwd(), "public"), output).split(sep).join("/");
     add({
-      kind: mediaKind(output) ?? "image",
+      kind,
       url: `/${relativePath}`,
       filename: output.split(sep).at(-1) ?? "output",
       source: "public",
@@ -129,9 +149,11 @@ export async function discoverProjectMediaAssets(
     for (const [rootIndex, root] of roots.entries()) {
       if (!existsSync(root)) continue;
       for (const output of await newestMediaFiles(root)) {
+        const kind = mediaKind(output) ?? "image";
+        if (imageOnly && kind === "video") continue;
         const relativePath = relative(root, output).split(sep).join("/");
         add({
-          kind: mediaKind(output) ?? "image",
+          kind,
           url: `/api/showcase-media/${slug}?root=${rootIndex}&file=${encodeURIComponent(relativePath)}`,
           filename: output.split(sep).at(-1) ?? "output",
           source: "external",

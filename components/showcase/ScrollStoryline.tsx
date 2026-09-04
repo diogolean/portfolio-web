@@ -3,6 +3,7 @@
 import { motion, useMotionValue, useScroll } from "framer-motion";
 import { useCallback, useRef, useState } from "react";
 import type { ProjectMediaAsset } from "@/lib/media-discovery";
+import type { ProjectMediaKind } from "@/lib/types";
 import type { PipelineNode } from "@/types/project";
 import { useT } from "./LanguageProvider";
 import ArchitectureCanvas from "./ArchitectureCanvas";
@@ -17,9 +18,10 @@ interface ScrollStorylineProps {
   slug: string;
   nodes: PipelineNode[];
   media: ProjectMediaAsset[];
+  mediaKind?: ProjectMediaKind;
 }
 
-export default function ScrollStoryline({ slug, nodes, media }: ScrollStorylineProps) {
+export default function ScrollStoryline({ slug, nodes, media, mediaKind }: ScrollStorylineProps) {
   const containerRef = useRef<HTMLElement>(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const [activeSpineIndex, setActiveSpineIndex] = useState(-1);
@@ -48,6 +50,7 @@ export default function ScrollStoryline({ slug, nodes, media }: ScrollStorylineP
                 <Interactive916Player
                   assets={media}
                   slug={slug}
+                  mediaKind={mediaKind}
                   activeNode={activeNode}
                   activeIndex={activeIndex}
                 />

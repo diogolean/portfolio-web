@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { getProjectBySlug, getProjectTechStack } from "@/lib/registry";
+import { getProjectBySlug, getProjectMediaKind, getProjectTechStack } from "@/lib/registry";
 import { getProjectPipeline } from "@/lib/projects-data";
 import { discoverProjectMediaAssets } from "@/lib/media-discovery";
 import {
@@ -27,6 +27,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
   const { meta, architecture } = project;
   const showcase = getProjectPipeline(project);
   const media = await discoverProjectMediaAssets(meta.slug, architecture);
+  const mediaKind = getProjectMediaKind(meta.slug);
   if (!showcase.nodes.length) notFound();
   const graphTechnologies = getProjectTechStack(meta.slug);
 
@@ -115,7 +116,12 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
           </div>
         </header>
 
-        <ScrollStoryline slug={meta.slug} nodes={showcase.nodes} media={media} />
+        <ScrollStoryline
+          slug={meta.slug}
+          nodes={showcase.nodes}
+          media={media}
+          mediaKind={mediaKind}
+        />
         <TerminalTelemetry lines={showcase.telemetry} sessionId={architecture?.session_id} />
         <ShowcaseConduit />
       </main>

@@ -4,6 +4,7 @@
 export const SHOWCASE_SCHEMA = "1.0" as const;
 
 export type ProjectStatus = "active" | "registry" | "archived";
+export type ProjectMediaKind = "video" | "image" | "carousel";
 
 /** data/projects/[slug]/project.json — registry card, always present */
 export interface ProjectMeta {

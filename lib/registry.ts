@@ -8,7 +8,13 @@ import { join } from "path";
 import matter from "gray-matter";
 import { marked } from "marked";
 import { getProjectHighlights } from "./highlight-terms";
-import type { ProjectArchitecture, ProjectMeta, ResolvedProject, GlobalTimeline } from "./types";
+import type {
+  ProjectArchitecture,
+  ProjectMediaKind,
+  ProjectMeta,
+  ResolvedProject,
+  GlobalTimeline,
+} from "./types";
 
 const SHOWCASE_ROOT = join(process.cwd(), "content/showcase/projects");
 const TIMELINE_PATH = join(process.cwd(), "content/showcase/global_timeline.json");
@@ -182,20 +188,59 @@ const HOME_TILE_CODENAMES: Record<string, string> = {
 const B2_PUBLIC_BASE = "https://MediaupscaleStorage.s3.us-east-005.backblazeb2.com";
 
 /**
+ * Primary hero media mode. Carousel/image projects must never resolve a video URL.
+ */
+export const PROJECT_MEDIA_KIND: Record<string, ProjectMediaKind> = {
+  anna_protocol: "carousel",
+};
+
+export const PROJECT_CAROUSEL_IMAGES: Record<string, readonly string[]> = {
+  anna_protocol: [
+    "/images/projects/annas_garden_1.webp",
+    "/images/projects/annas_garden_2.webp",
+    "/images/projects/annas_garden_3.webp",
+    "/images/projects/annas_garden_4.webp",
+    "/images/projects/annas_garden_5.webp",
+  ],
+};
+
+/**
  * Verified live Backblaze objects in MediaupscaleStorage.
- * Sourced from omni-engine libraries / postplanners, then confirmed with a bucket list.
- * Channels whose library URLs 404 are omitted so playback can fall back to local media.
+ * Keys are canonical project slugs. HTTP URLs win over local fallbacks in
+ * resolveHeroMedia / listPublicVideoUrls. anna_protocol is omitted because
+ * it is an image-carousel channel with no source .mp4.
  */
 export const PROJECT_B2_VIDEOS: Record<string, string> = {
   ancient_knowledge: `${B2_PUBLIC_BASE}/reel_this_geode_hides_a_secret_that_d_v01.mp4`,
   master_mei: `${B2_PUBLIC_BASE}/reel_your_mind_s_true_owner_isn_t_you_v30.mp4`,
+  aiwake: `${B2_PUBLIC_BASE}/aiwake_debate_20260902_074022_cc7f88.mp4`,
+  wonder_feed: `${B2_PUBLIC_BASE}/lofi_reel_forgiveness_putting_the_weight_down_20260828_004447_v01.mp4`,
+  momma_circle: `${B2_PUBLIC_BASE}/lofi_reel_gentle_discipline_20260819_225322_v01.mp4`,
+  endless_summer_paradise: `${B2_PUBLIC_BASE}/The_Terminus_1778730630_V4_LIVE_ULTIMATE_MASTER.mp4`,
 };
 
 export function canonicalProjectSlug(slug: string): string {
   return PROJECT_SLUG_ALIASES[slug] ?? slug;
 }
 
+export function getProjectMediaKind(slug: string): ProjectMediaKind {
+  const canonical = canonicalProjectSlug(slug);
+  return PROJECT_MEDIA_KIND[canonical] ?? PROJECT_MEDIA_KIND[slug] ?? "video";
+}
+
+export function isImageOnlyProject(slug: string) {
+  const kind = getProjectMediaKind(slug);
+  return kind === "carousel" || kind === "image";
+}
+
+export function getProjectCarouselImages(slug: string): string[] {
+  const canonical = canonicalProjectSlug(slug);
+  const declared = PROJECT_CAROUSEL_IMAGES[canonical] ?? PROJECT_CAROUSEL_IMAGES[slug] ?? [];
+  return declared.filter((url) => publicAssetExists(url));
+}
+
 export function getProjectB2Video(slug: string): string | null {
+  if (isImageOnlyProject(slug)) return null;
   const canonical = canonicalProjectSlug(slug);
   return PROJECT_B2_VIDEOS[canonical] ?? PROJECT_B2_VIDEOS[slug] ?? null;
 }
@@ -374,6 +419,15 @@ export async function listPublicVideoUrls(slug: string) {
 }
 
 export async function resolveHeroMedia(slug: string, architecture: ProjectArchitecture | null) {
+  const images = getProjectCarouselImages(slug);
+  if (isImageOnlyProject(slug)) {
+    const poster =
+      images[0] ??
+      (await resolveHeroPoster(slug, architecture)) ??
+      (await firstPublicAsset("images", slug, IMAGE_EXT));
+    return { video: null, poster, images: images.length ? images : poster ? [poster] : [] };
+  }
+
   const remote = getProjectB2Video(slug);
   const declaredVideo = assetUrl("videos", slug, architecture?.media_assets?.reel);
   const declaredOk =
@@ -382,7 +436,7 @@ export async function resolveHeroMedia(slug: string, architecture: ProjectArchit
       : null;
   const video = remote ?? declaredOk ?? (await firstPublicAsset("videos", slug, VIDEO_EXT));
   const poster = await resolveHeroPoster(slug, architecture);
-  return { video, poster };
+  return { video, poster, images: images.length ? images : poster ? [poster] : [] };
 }
 
 /**
