@@ -54,10 +54,10 @@ export default function HexMosaic({
   const containerRef = useRef<HTMLDivElement>(null);
   const isTouching = useRef(false);
   const isFinePointer = useRef(false);
-  const tiltX = useMotionValue(8);
-  const tiltY = useMotionValue(-10);
+  const tiltX = useMotionValue(12);
+  const tiltY = useMotionValue(-14);
   const depth = useMotionValue(-20);
-  const springConfig = { stiffness: 160, damping: 24, mass: 0.55 };
+  const springConfig = { stiffness: 150, damping: 25, mass: 0.55 };
   const rotateX = useSpring(tiltX, springConfig);
   const rotateY = useSpring(tiltY, springConfig);
   const clusterZ = useSpring(depth, springConfig);
@@ -65,8 +65,8 @@ export default function HexMosaic({
     target: containerRef,
     offset: ["start end", "end start"],
   });
-  const scrollRotateX = useTransform(scrollYProgress, [0, 0.5, 1], [8, 0, -8]);
-  const scrollRotateY = useTransform(scrollYProgress, [0, 0.5, 1], [-10, 0, 10]);
+  const scrollRotateX = useTransform(scrollYProgress, [0, 0.5, 1], [12, 0, -12]);
+  const scrollRotateY = useTransform(scrollYProgress, [0, 0.5, 1], [-14, 0, 14]);
   const scrollTranslateZ = useTransform(scrollYProgress, [0, 0.5, 1], [-20, 0, -20]);
   const bySlug = new Map(projects.map((p) => [p.slug, p]));
   const center = bySlug.get(CENTER_SLUG);
