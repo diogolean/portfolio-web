@@ -179,6 +179,39 @@ const HOME_TILE_CODENAMES: Record<string, string> = {
   aiwake: "Autonomous Multi-Agent Debate Engine",
 };
 
+const B2_PUBLIC_BASE = "https://MediaupscaleStorage.s3.us-east-005.backblazeb2.com";
+
+/**
+ * Verified live Backblaze objects in MediaupscaleStorage.
+ * Sourced from omni-engine libraries / postplanners, then confirmed with a bucket list.
+ * Channels whose library URLs 404 are omitted so playback can fall back to local media.
+ */
+export const PROJECT_B2_VIDEOS: Record<string, string> = {
+  ancient_knowledge: `${B2_PUBLIC_BASE}/reel_this_geode_hides_a_secret_that_d_v01.mp4`,
+  master_mei: `${B2_PUBLIC_BASE}/reel_your_mind_s_true_owner_isn_t_you_v30.mp4`,
+};
+
+export function canonicalProjectSlug(slug: string): string {
+  return PROJECT_SLUG_ALIASES[slug] ?? slug;
+}
+
+export function getProjectB2Video(slug: string): string | null {
+  const canonical = canonicalProjectSlug(slug);
+  return PROJECT_B2_VIDEOS[canonical] ?? PROJECT_B2_VIDEOS[slug] ?? null;
+}
+
+export function listProjectB2Videos(): Record<string, string | null> {
+  return {
+    endless_summer_paradise: getProjectB2Video("endless_summer_paradise"),
+    ancient_knowledge: getProjectB2Video("ancient_knowledge"),
+    master_mei: getProjectB2Video("master_mei"),
+    annas_garden: getProjectB2Video("annas_garden"),
+    aiwake: getProjectB2Video("aiwake"),
+    wonder_feed: getProjectB2Video("wonder_feed"),
+    momma_circle: getProjectB2Video("momma_circle"),
+  };
+}
+
 const HOME_TILE_TAGS: Record<string, readonly string[]> = {
   master_mei: ["AGENT", "LLM"],
   aiwake: ["LLM", "MCP"],
@@ -335,16 +368,19 @@ async function firstPublicAsset(
 }
 
 export async function listPublicVideoUrls(slug: string) {
-  return listPublicDir("videos", slug, VIDEO_EXT);
+  const urls = await listPublicDir("videos", slug, VIDEO_EXT);
+  const remote = getProjectB2Video(slug);
+  return remote ? [remote, ...urls.filter((url) => url !== remote)] : urls;
 }
 
 export async function resolveHeroMedia(slug: string, architecture: ProjectArchitecture | null) {
+  const remote = getProjectB2Video(slug);
   const declaredVideo = assetUrl("videos", slug, architecture?.media_assets?.reel);
   const declaredOk =
     declaredVideo && (declaredVideo.startsWith("http") || publicAssetExists(declaredVideo))
       ? declaredVideo
       : null;
-  const video = declaredOk ?? (await firstPublicAsset("videos", slug, VIDEO_EXT));
+  const video = remote ?? declaredOk ?? (await firstPublicAsset("videos", slug, VIDEO_EXT));
   const poster = await resolveHeroPoster(slug, architecture);
   return { video, poster };
 }

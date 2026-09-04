@@ -101,7 +101,7 @@ export async function discoverProjectMediaAssets(
       kind: "video",
       url: publicMedia.video,
       filename: publicMedia.video.split("/").at(-1) ?? "output.mp4",
-      source: "public",
+      source: /^https?:\/\//i.test(publicMedia.video) ? "external" : "public",
     });
   }
   for (const url of await listPublicVideoUrls(slug)) {
@@ -109,7 +109,7 @@ export async function discoverProjectMediaAssets(
       kind: "video",
       url,
       filename: url.split("/").at(-1) ?? "output.mp4",
-      source: "public",
+      source: /^https?:\/\//i.test(url) ? "external" : "public",
     });
   }
 
