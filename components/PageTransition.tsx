@@ -20,6 +20,19 @@ interface PageTransitionContextValue {
 
 const PageTransitionContext = createContext<PageTransitionContextValue | null>(null);
 
+function projectAgentStatus(href: string) {
+  const match = href.match(/^\/projects\/([^/?#]+)/i);
+  if (!match) return "LOADING PROJECT PIPELINE AGENT...";
+  let slug = match[1];
+  try {
+    slug = decodeURIComponent(slug);
+  } catch {
+    // Keep the route-safe slug if it contains malformed escapes.
+  }
+  const projectName = slug.replace(/[-_]+/g, " ").trim().toUpperCase();
+  return `LOADING PROJECT ${projectName || "PIPELINE"} AGENT...`;
+}
+
 export function usePageTransition() {
   const context = useContext(PageTransitionContext);
   if (!context) throw new Error("usePageTransition must be used within PageTransition");
@@ -34,9 +47,9 @@ export default function PageTransition({ children }: { children: ReactNode }) {
   const [transition, setTransition] = useState<{ href: string; status: string } | null>(null);
 
   const navigate = useCallback(
-    (href: string, status = "INITIALIZING PIPELINE AGENT...") => {
+    (href: string, status?: string) => {
       if (transition || href === pathname) return;
-      setTransition({ href, status });
+      setTransition({ href, status: status ?? projectAgentStatus(href) });
       timer.current = setTimeout(() => router.push(href), 300);
     },
     [pathname, router, transition]

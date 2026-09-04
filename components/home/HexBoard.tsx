@@ -16,10 +16,7 @@ export default function HexBoard({ projects }: { projects: ProjectMeta[] }) {
     if (launchingRef.current) return;
     launchingRef.current = true;
     setLaunchingSlug(slug);
-    navigate(
-      `/projects/${slug}`,
-      `INITIALIZING ${slug.replaceAll("_", " ").toUpperCase()} AGENT...`
-    );
+    navigate(`/projects/${slug}`);
   }
 
   return (
@@ -31,7 +28,7 @@ export default function HexBoard({ projects }: { projects: ProjectMeta[] }) {
           filter: launchingSlug ? "blur(12px)" : "blur(0px)",
         }}
         transition={{ duration: 0.55, ease: [0.7, 0, 0.3, 1] }}
-        className="relative isolate"
+        className="relative isolate transform-gpu will-change-[transform,filter,opacity]"
       >
         <HexMosaic
           projects={projects}

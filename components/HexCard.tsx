@@ -1,9 +1,10 @@
 "use client";
 
+import { motion, useMotionValue, useSpring } from "framer-motion";
 import Image from "next/image";
 import {
+  useRef,
   useState,
-  type CSSProperties,
   type MouseEvent,
   type PointerEvent,
 } from "react";
@@ -16,8 +17,6 @@ interface HexCardProps {
   isLaunching?: boolean;
 }
 
-const REST_TRANSFORM = "perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)";
-
 function readCssNumber(name: string, fallback: number) {
   const raw = getComputedStyle(document.documentElement).getPropertyValue(name);
   const value = Number.parseFloat(raw);
@@ -27,11 +26,15 @@ function readCssNumber(name: string, fallback: number) {
 export default function HexCard({ project, onNavigate, isLaunching = false }: HexCardProps) {
   const isRegistry = project.status === "registry";
   const coverSrc = project.cover_image ?? project.image ?? null;
+  const pointerStart = useRef<{ id: number; x: number; y: number } | null>(null);
+  const rawRotateX = useMotionValue(0);
+  const rawRotateY = useMotionValue(0);
+  const rawScale = useMotionValue(1);
+  const springConfig = { stiffness: 200, damping: 20, mass: 0.45 };
+  const rotateX = useSpring(rawRotateX, springConfig);
+  const rotateY = useSpring(rawRotateY, springConfig);
+  const scale = useSpring(rawScale, springConfig);
   const [hovered, setHovered] = useState(false);
-  const [tilt, setTilt] = useState<CSSProperties>({
-    transform: REST_TRANSFORM,
-    transition: "transform 0.4s ease-out",
-  });
 
   function handleMouseMove(e: MouseEvent<HTMLButtonElement>) {
     const el = e.currentTarget;
@@ -43,57 +46,89 @@ export default function HexCard({ project, onNavigate, isLaunching = false }: He
     const rotX = (y / (rect.height / 2)) * -max;
     const rotY = (x / (rect.width / 2)) * max;
 
-    setTilt({
-      transform: `perspective(1000px) rotateX(${rotX.toFixed(2)}deg) rotateY(${rotY.toFixed(2)}deg) scale3d(${scale}, ${scale}, ${scale})`,
-      transition: "none",
-    });
+    rawRotateX.set(rotX);
+    rawRotateY.set(rotY);
+    rawScale.set(scale);
   }
 
   function handleMouseEnter() {
     setHovered(true);
+    rawScale.set(readCssNumber("--card-hover-scale", 1.06));
     playHexHoverBeep();
   }
 
   function handleMouseLeave() {
     setHovered(false);
-    setTilt({
-      transform: REST_TRANSFORM,
-      transition: "transform 0.4s ease-out",
-    });
+    rawRotateX.set(0);
+    rawRotateY.set(0);
+    rawScale.set(1);
   }
 
   function handlePointerDown(event: PointerEvent<HTMLButtonElement>) {
     if (event.button !== 0) return;
-    onNavigate?.(project.slug);
+    pointerStart.current = {
+      id: event.pointerId,
+      x: event.clientX,
+      y: event.clientY,
+    };
+  }
+
+  function handlePointerUp(event: PointerEvent<HTMLButtonElement>) {
+    const start = pointerStart.current;
+    pointerStart.current = null;
+    if (!start || start.id !== event.pointerId) return;
+    const travel = Math.hypot(event.clientX - start.x, event.clientY - start.y);
+    if (travel <= 8) onNavigate?.(project.slug);
   }
 
   return (
     <button
       type="button"
       onPointerDown={handlePointerDown}
+      onPointerUp={handlePointerUp}
+      onPointerCancel={() => {
+        pointerStart.current = null;
+      }}
       onClick={(event) => {
         if (event.detail === 0) onNavigate?.(project.slug);
       }}
       onMouseMove={handleMouseMove}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
-      className="hex-hitbox cursor-pointer select-none border-0 bg-transparent p-0 text-inherit pointer-events-auto"
+      className="hex-hitbox touch-pan-y cursor-pointer select-none border-0 bg-transparent p-0 text-inherit pointer-events-auto [&_*]:pointer-events-none"
       data-hovered={hovered || undefined}
       suppressHydrationWarning
     >
-      <div
-        className="hex-frame hex-tilt flex items-center justify-center"
+      <motion.div
+        animate={
+          isLaunching
+            ? {
+                rotateX: 720,
+                rotateY: -1080,
+                rotateZ: 540,
+                scale: 0.15,
+              }
+            : undefined
+        }
+        transition={
+          isLaunching
+            ? { duration: 0.65, ease: [0.7, 0, 0.3, 1] }
+            : undefined
+        }
+        className="pointer-events-none hex-frame hex-tilt flex transform-gpu items-center justify-center will-change-transform"
         style={{
-          ...tilt,
-          transform: isLaunching
-            ? "perspective(1000px) rotateX(720deg) rotateY(-1080deg) rotateZ(540deg) scale3d(0.15, 0.15, 0.15)"
-            : tilt.transform,
-          transition: isLaunching ? "transform 0.65s cubic-bezier(0.7, 0, 0.3, 1)" : tilt.transition,
+          rotateX,
+          rotateY,
+          scale,
+          transformPerspective: 1000,
           transformStyle: "preserve-3d",
         }}
       >
         <div
-          className={["hex-bg border", isRegistry ? "hex-bg-registry" : "hex-bg-active"].join(" ")}
+          className={[
+            "pointer-events-none hex-bg border",
+            isRegistry ? "hex-bg-registry" : "hex-bg-active",
+          ].join(" ")}
           style={{ transform: "translateZ(var(--z-bg))" }}
         >
           {coverSrc && (
@@ -102,15 +137,16 @@ export default function HexCard({ project, onNavigate, isLaunching = false }: He
               alt=""
               fill
               sizes="(max-width: 768px) 100vw, 300px"
+              className="pointer-events-none"
               style={{ objectFit: "cover" }}
             />
           )}
-          {coverSrc && <div className="hex-cover-overlay" />}
+          {coverSrc && <div className="pointer-events-none hex-cover-overlay" />}
         </div>
 
         <div
           className={[
-            "hex-layer-mid relative z-20 flex flex-col items-center gap-1 px-[var(--hex-card-padding)] text-center",
+            "pointer-events-none hex-layer-mid relative z-20 flex flex-col items-center gap-1 px-[var(--hex-card-padding)] text-center",
             isRegistry ? "hex-title-registry" : "hex-title-active",
           ].join(" ")}
           style={{ transform: "translateZ(var(--z-depth-text))" }}
@@ -132,7 +168,7 @@ export default function HexCard({ project, onNavigate, isLaunching = false }: He
         </div>
 
         <div
-          className="hex-layer-top absolute inset-x-0 bottom-6 z-20 flex flex-col items-center gap-1.5"
+          className="pointer-events-none hex-layer-top absolute inset-x-0 bottom-6 z-20 flex flex-col items-center gap-1.5"
           style={{ transform: "translateZ(var(--z-depth-badges))" }}
         >
           {project.tags.length > 0 && (
@@ -156,7 +192,7 @@ export default function HexCard({ project, onNavigate, isLaunching = false }: He
             {project.status}
           </span>
         </div>
-      </div>
+      </motion.div>
     </button>
   );
 }

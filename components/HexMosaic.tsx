@@ -1,6 +1,11 @@
 "use client";
 
-import { useEffect, useState, type CSSProperties } from "react";
+import { motion, useSpring } from "framer-motion";
+import {
+  useEffect,
+  type PointerEvent,
+  type TouchEvent,
+} from "react";
 import type { ProjectMeta } from "@/lib/types";
 import HexCard from "./HexCard";
 
@@ -11,7 +16,6 @@ interface HexMosaicProps {
 }
 
 const CENTER_SLUG = "aiwake";
-const REST_CLUSTER = "perspective(1200px) rotateX(0deg) rotateY(0deg) translateZ(0px)";
 
 const RING: { slug: string; dx: number; dy: number }[] = [
   { slug: "ancient_knowledge", dx: 0, dy: -1 },
@@ -39,10 +43,9 @@ export default function HexMosaic({
   onNavigate,
   launchingSlug,
 }: HexMosaicProps) {
-  const [clusterTilt, setClusterTilt] = useState<CSSProperties>({
-    transform: REST_CLUSTER,
-    transition: "transform 0.25s ease-out",
-  });
+  const rotateX = useSpring(0, { stiffness: 200, damping: 20, mass: 0.45 });
+  const rotateY = useSpring(0, { stiffness: 200, damping: 20, mass: 0.45 });
+  const clusterZ = useSpring(0, { stiffness: 200, damping: 20, mass: 0.45 });
   const bySlug = new Map(projects.map((p) => [p.slug, p]));
   const center = bySlug.get(CENTER_SLUG);
   const ring = RING.map((slot) => ({ ...slot, project: bySlug.get(slot.slug) })).filter(
@@ -53,28 +56,72 @@ export default function HexMosaic({
   const overflow = projects.filter((p) => !placed.has(p.slug));
 
   useEffect(() => {
+    const finePointer = window.matchMedia("(hover: hover) and (pointer: fine)");
+
     function onWindowMouseMove(e: globalThis.MouseEvent) {
+      if (!finePointer.matches) return;
       const x = e.clientX / window.innerWidth - 0.5;
       const y = e.clientY / window.innerHeight - 0.5;
       const max = readCssDeg("--global-tilt-max", 15);
       const lift = readCssPx("--cluster-z", 20);
 
-      setClusterTilt({
-        transform: `perspective(1200px) rotateX(${(-y * max).toFixed(2)}deg) rotateY(${(x * max).toFixed(2)}deg) translateZ(${lift}px)`,
-        transition: "none",
-      });
+      rotateX.set(-y * max);
+      rotateY.set(x * max);
+      clusterZ.set(lift);
     }
 
     window.addEventListener("mousemove", onWindowMouseMove);
     return () => window.removeEventListener("mousemove", onWindowMouseMove);
-  }, []);
+  }, [clusterZ, rotateX, rotateY]);
+
+  function updateTilt(clientX: number, clientY: number, element: HTMLDivElement) {
+    const rect = element.getBoundingClientRect();
+    if (!rect.width || !rect.height) return;
+    const x = (clientX - rect.left) / rect.width - 0.5;
+    const y = (clientY - rect.top) / rect.height - 0.5;
+    const max = readCssDeg("--global-tilt-max", 25);
+
+    rotateX.set(-y * max);
+    rotateY.set(x * max);
+    clusterZ.set(readCssPx("--cluster-z", 20));
+  }
+
+  function handlePointerMove(event: PointerEvent<HTMLDivElement>) {
+    updateTilt(event.clientX, event.clientY, event.currentTarget);
+  }
+
+  function handleTouchMove(event: TouchEvent<HTMLDivElement>) {
+    const touch = event.touches[0];
+    if (touch) updateTilt(touch.clientX, touch.clientY, event.currentTarget);
+  }
+
+  function resetTilt() {
+    rotateX.set(0);
+    rotateY.set(0);
+    clusterZ.set(0);
+  }
 
   return (
     <div className="flex flex-col items-center gap-16">
       {center && (
-        <div
-          className="hex-cluster"
-          style={{ ...clusterTilt, transformStyle: "preserve-3d" }}
+        <motion.div
+          className="hex-cluster touch-pan-y transform-gpu will-change-transform"
+          data-testid="home-hex-mosaic"
+          onPointerMove={handlePointerMove}
+          onPointerUp={resetTilt}
+          onPointerCancel={resetTilt}
+          onPointerLeave={resetTilt}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={resetTilt}
+          onTouchCancel={resetTilt}
+          style={{
+            rotateX,
+            rotateY,
+            z: clusterZ,
+            transformPerspective: 1200,
+            transformStyle: "preserve-3d",
+            touchAction: "pan-y",
+          }}
         >
           <RingSlot
             project={center}
@@ -93,7 +140,7 @@ export default function HexMosaic({
               launchingSlug={launchingSlug}
             />
           ))}
-        </div>
+        </motion.div>
       )}
 
       {overflow.length > 0 && (
