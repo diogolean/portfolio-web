@@ -194,13 +194,24 @@ export const PROJECT_MEDIA_KIND: Record<string, ProjectMediaKind> = {
   anna_protocol: "carousel",
 };
 
+/**
+ * Home hex / thumbnail covers. Independent of the internal project gallery.
+ * Do not overwrite these with carousel stills.
+ */
+export const PROJECT_COVER_IMAGES: Record<string, string> = {
+  anna_protocol: "/showcase/images/anna_protocol/cover.webp",
+};
+
+/**
+ * Curated stills only — no burned-in titles, subtitles, or UI overlays.
+ * First image is the hero portrait (Anna's face, natural light).
+ * Remaining slides are macro herb / preparation details.
+ */
 export const PROJECT_CAROUSEL_IMAGES: Record<string, readonly string[]> = {
   anna_protocol: [
-    "/images/projects/annas_garden_1.webp",
-    "/images/projects/annas_garden_2.webp",
-    "/images/projects/annas_garden_3.webp",
-    "/images/projects/annas_garden_4.webp",
-    "/images/projects/annas_garden_5.webp",
+    "/images/projects/annas_garden_portrait_clean.webp",
+    "/images/projects/annas_garden_herbs_detail_1.webp",
+    "/images/projects/annas_garden_herbs_detail_2.webp",
   ],
 };
 
@@ -231,6 +242,13 @@ export function getProjectMediaKind(slug: string): ProjectMediaKind {
 export function isImageOnlyProject(slug: string) {
   const kind = getProjectMediaKind(slug);
   return kind === "carousel" || kind === "image";
+}
+
+export function getProjectCoverImage(slug: string): string | null {
+  const canonical = canonicalProjectSlug(slug);
+  const declared = PROJECT_COVER_IMAGES[canonical] ?? PROJECT_COVER_IMAGES[slug];
+  if (declared && publicAssetExists(declared)) return declared;
+  return null;
 }
 
 export function getProjectCarouselImages(slug: string): string[] {
@@ -287,6 +305,8 @@ export async function getProjectBySlug(slug: string): Promise<ResolvedProject | 
 }
 
 export async function resolveCoverImage(slug: string, meta: ProjectMeta): Promise<string | null> {
+  const registryCover = getProjectCoverImage(slug);
+  if (registryCover) return registryCover;
   const named = meta.cover_image ?? meta.image;
   if (named) {
     if (named.startsWith("/")) return named;

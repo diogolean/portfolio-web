@@ -1,8 +1,16 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { getProjectBySlug, getProjectMediaKind, getProjectTechStack } from "@/lib/registry";
+import {
+  getProjectBySlug,
+  getProjectCarouselImages,
+  getProjectMediaKind,
+  getProjectTechStack,
+} from "@/lib/registry";
 import { getProjectPipeline } from "@/lib/projects-data";
-import { discoverProjectMediaAssets } from "@/lib/media-discovery";
+import {
+  discoverProjectMediaAssets,
+  type ProjectMediaAsset,
+} from "@/lib/media-discovery";
 import {
   LanguageProvider,
   LocalizedLabel,
@@ -26,8 +34,19 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
 
   const { meta, architecture } = project;
   const showcase = getProjectPipeline(project);
-  const media = await discoverProjectMediaAssets(meta.slug, architecture);
   const mediaKind = getProjectMediaKind(meta.slug);
+  const curatedStills = getProjectCarouselImages(meta.slug).map(
+    (url): ProjectMediaAsset => ({
+      kind: "image",
+      url,
+      filename: url.split("/").at(-1) ?? "still.webp",
+      source: "public",
+    })
+  );
+  const media =
+    mediaKind === "carousel" || mediaKind === "image"
+      ? curatedStills
+      : await discoverProjectMediaAssets(meta.slug, architecture);
   if (!showcase.nodes.length) notFound();
   const graphTechnologies = getProjectTechStack(meta.slug);
 

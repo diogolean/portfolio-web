@@ -130,3 +130,48 @@ export interface TimelineNode {
 export interface GlobalTimeline {
   pipeline_nodes: TimelineNode[];
 }
+
+export interface ProfileContact {
+  email: string;
+  portfolio: string;
+  github: string;
+  linkedin: string;
+}
+
+export interface ProfileMetric {
+  label: string;
+  value: string;
+}
+
+export interface CapabilityCategory {
+  id: string;
+  category: string;
+  skills: string[];
+}
+
+export interface AcademicCredential {
+  degree: string;
+  institution: string;
+  period: string;
+  highlight: string;
+}
+
+export interface ExperienceHighlight {
+  role: string;
+  company: string;
+  period: string;
+  summary: string;
+}
+
+export interface UserProfile {
+  name: string;
+  role: string;
+  tagline: string;
+  summary: string;
+  location: string;
+  contact: ProfileContact;
+  metrics: ProfileMetric[];
+  capability_matrix: CapabilityCategory[];
+  academic_background: AcademicCredential[];
+  experience_highlights: ExperienceHighlight[];
+}

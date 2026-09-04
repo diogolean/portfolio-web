@@ -112,6 +112,12 @@ export async function discoverProjectMediaAssets(
     });
   }
 
+  // Carousel channels stay on the curated stills only — factory finals
+  // often carry burned-in titles and must not leak into the player.
+  if (imageOnly) {
+    return assets.slice(0, 18);
+  }
+
   if (!imageOnly && publicMedia.video) {
     add({
       kind: "video",

@@ -2,13 +2,14 @@
   "name": "Diogo Lean Veiga",
   "role": "AI Automation Engineer & Systems Architect",
   "tagline": "Building autonomous video pipelines, agentic orchestration graphs, and multi-profile growth engines.",
-  "summary": "Specialist in end-to-end generative AI automation, multi-agent orchestrations, and high-throughput content pipelines.",
-  "competencies": [
-    "Agent Orchestration & State Machines",
-    "GraphRAG & Custom Knowledge Systems",
-    "Generative Media Engines (Kling, ElevenLabs, FLUX)",
-    "Automated Infrastructure & Proxy Mesh Routing"
-  ],
+  "summary": "Specialist in end-to-end generative AI automation, multi-agent orchestrations, full-stack web architectures, and high-throughput content engines.",
+  "location": "Rio de Janeiro, Brazil (Worldwide Remote)",
+  "contact": {
+    "email": "diogolean@gmail.com",
+    "portfolio": "https://www.actdesign.org",
+    "github": "https://github.com/MediaUpScale",
+    "linkedin": "https://linkedin.com/in/diogo-lean-veiga"
+  },
   "metrics": [
     {
       "label": "Pipeline Automation Rate",
@@ -17,6 +18,80 @@
     {
       "label": "Active AI Channels Managed",
       "value": "10+"
+    },
+    {
+      "label": "Global Audience Reach",
+      "value": "5M+"
+    },
+    {
+      "label": "Ad Revenue Generated",
+      "value": "$100K+"
+    }
+  ],
+  "capability_matrix": [
+    {
+      "id": "01",
+      "category": "AI Orchestration & Agents",
+      "skills": ["Python Scripting", "Multi-Agent Systems", "GraphRAG & Knowledge Systems", "Prompt Engineering", "OpenAI & Gemini APIs"]
+    },
+    {
+      "id": "02",
+      "category": "Frontend & Web Engineering",
+      "skills": ["Next.js 15", "React 19", "TypeScript", "Tailwind CSS", "JavaScript (ES6+)", "Dynamic CSS / Canvas"]
+    },
+    {
+      "id": "03",
+      "category": "Generative Media Engines",
+      "skills": ["Kling AI", "ElevenLabs", "HeyGen", "FLUX.1 / SD", "ComfyUI Pipeline Automation"]
+    },
+    {
+      "id": "04",
+      "category": "Full-Stack, CMS & E-Commerce",
+      "skills": ["WordPress Custom Dev", "PHP", "Shopify & VTEX APIs", "REST / GraphQL Integrations", "AdSense & SEO Optimization"]
+    },
+    {
+      "id": "05",
+      "category": "Infrastructure & Operations",
+      "skills": ["Proxy Mesh Routing", "Anti-detect Browsers (Dolphin/GoLogin)", "Automated Workflows", "Git / GitHub Versioning"]
+    },
+    {
+      "id": "06",
+      "category": "UX, Product & Visual Art",
+      "skills": ["HCI Research (Master's Level)", "User Flows & Wireframing", "Figma", "Digital Fine Art & Illustration", "Meta & Google Ads Funnels"]
+    }
+  ],
+  "academic_background": [
+    {
+      "degree": "Master's Degree in Design / Human-Computer Interaction (HCI)",
+      "institution": "ESDI - Escola Superior de Desenho Industrial (UERJ)",
+      "period": "2011 - 2013",
+      "highlight": "Admitted in 1st place in the UERJ Master's selection process."
+    },
+    {
+      "degree": "Bachelor's Degree in Design",
+      "institution": "PUC-Rio",
+      "period": "2003 - 2007",
+      "highlight": "Capstone project selected and exhibited at the Brazilian Design Biennial in São Paulo."
+    }
+  ],
+  "experience_highlights": [
+    {
+      "role": "AI Automation Engineer & Digital Publisher",
+      "company": "MediaUpscale LLC / Independent Projects",
+      "period": "Ongoing",
+      "summary": "Architected generative content engines and scaled international social media networks reaching over 5M followers."
+    },
+    {
+      "role": "Founder, Director & Tech Lead",
+      "company": "SOSilha Tecnologia & Skill Idiomas",
+      "period": "2015 - 2022",
+      "summary": "Founded and managed a tech school, teaching UX design, web development, and digital infrastructure."
+    },
+    {
+      "role": "Web Developer & Interactive Designer",
+      "company": "Caos! Vídeo & Design / VTEX / 6D Studio",
+      "period": "2007 - 2015",
+      "summary": "Engineered web interfaces and CMS components for major brands including Oscar Niemeyer projects and Projeto Portinari."
     }
   ]
 }
