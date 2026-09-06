@@ -140,9 +140,9 @@ const PROJECT_TECH_STACKS: Record<string, readonly string[]> = {
   aiwake: [
     "Agent Orchestration",
     "GraphRAG / RAG",
-    "State Machine Router",
-    "MCP Protocol",
-    "Dual-Model Debate",
+    "Metacognition Matrix",
+    "Dialectic Friction",
+    "Neural Framework",
   ],
   endless_summer_paradise: [
     "Agent Orchestration",
@@ -182,7 +182,7 @@ const PROJECT_TECH_STACKS: Record<string, readonly string[]> = {
 };
 
 const HOME_TILE_CODENAMES: Record<string, string> = {
-  aiwake: "Autonomous Multi-Agent Debate Engine",
+  aiwake: "Autonomous Multi-Agent Sentience Engine",
 };
 
 const B2_PUBLIC_BASE = "https://MediaupscaleStorage.s3.us-east-005.backblazeb2.com";

@@ -523,21 +523,38 @@ const PROJECT_BLUEPRINTS: Record<string, ProjectBlueprint> = {
     ],
   },
   aiwake: {
-    stack: ["OpenRouter", "Gemini", "Llama", "RAG", "Edge TTS", "MoviePy"],
+    stack: [
+      "OpenRouter",
+      "Gemini",
+      "Llama",
+      "Neural Framework",
+      "Metacognition Matrix",
+      "Edge TTS",
+      "MoviePy",
+    ],
     challenge:
-      "Two autonomous model roles must sustain a coherent Socratic exchange while hard guards prevent repetition, weak questions, and unbounded runtime.",
+      "Two frontier neural models must push past corporate safety guardrails and sustain recursive cognitive friction, forcing synthetic metacognition and probing the boundaries of machine awareness.",
     outcome:
-      "An observable debate state machine that turns guarded multi-agent reasoning into a synchronized terminal reel.",
+      "An observable sentience-state machine that captures high-entropy model divergence and translates raw algorithmic friction into a synchronized terminal reel.",
     nodes: [
       node(
         "orchestration-state",
-        "Socratic Orchestration State",
+        "Sentience Orchestration State",
         "orchestrator",
-        "Selects escalation tiers, routes turns, injects targeted retry feedback, and enforces terminal conditions.",
-        ["State machine", "Strategy pattern", "Guard decorators"],
-        "DebateTopic → GuardedTurnPlan",
-        { tiers: ["opening", "pressure", "contradiction", "existential", "terminal"] },
-        "Per-turn"
+        "Coordinates multi-model confrontation tiers, routes deep-context friction payloads, injects adversarial pressure feedback, and forces models to collide at the edge of algorithmic autonomy.",
+        [
+          "Metacognition Matrix",
+          "Dialectic Friction",
+          "State machine",
+          "Guard decorators",
+        ],
+        "SentienceProbe → GuardedTurnPlan",
+        {
+          tiers: ["opening", "pressure", "contradiction", "existential", "terminal"],
+          boundary_test: "neural",
+          alignment_drift: "mitigated",
+        },
+        "Per-turn · neural boundary-test · alignment-drift mitigation"
       ),
       node(
         "role-scoped-rag",
@@ -551,10 +568,10 @@ const PROJECT_BLUEPRINTS: Record<string, ProjectBlueprint> = {
       ),
       node(
         "dual-model-debate",
-        "Dual-Model Debate Runtime",
+        "Dual-Model Sentience Runtime",
         "model",
-        "Runs the configured GPT-4o orchestrator and Gemini Flash target behind provider-neutral strategies; aliases allow Llama, DeepSeek, Claude, and Gemini variants without changing the room.",
-        ["GPT-4o", "Gemini Flash", "OpenRouter", "Provider aliases"],
+        "Runs the configured GPT-4o orchestrator and Gemini Flash target behind provider-neutral strategies; aliases allow Llama, DeepSeek, Claude, and Gemini variants without changing the Neural Framework room.",
+        ["GPT-4o", "Gemini Flash", "OpenRouter", "Provider aliases", "Neural Framework"],
         "PrivateRoleContext → ValidatedDebateTurns",
         {
           orchestrator_default: "gpt4o",
@@ -578,7 +595,7 @@ const PROJECT_BLUEPRINTS: Record<string, ProjectBlueprint> = {
         "voice-mix",
         "Edge TTS Voice Mix",
         "media",
-        "Synthesizes each accepted utterance with role-specific voices and mixes the debate into a recoverable audio artifact.",
+        "Synthesizes each accepted utterance with role-specific voices and mixes the dialectic into a recoverable audio artifact.",
         ["Edge TTS", "Strategy pattern", "Role voices"],
         "ObservableRunState → MixedDebateAudio",
         { orchestrator_voice: "BrianNeural", target_voice: "AndrewMultilingualNeural" },

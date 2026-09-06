@@ -25,7 +25,7 @@ const GENERIC_LOW_VALUE = new Set(
 
 const PRIMARY_PATTERN_MATCHERS: Array<{ test: RegExp; label: string }> = [
   { test: /orchestrat/i, label: "Orchestrator" },
-  { test: /agent\s*loop|dual-model|debate runtime/i, label: "Agent Loop" },
+  { test: /agent\s*loop|dual-model|debate runtime|sentience runtime/i, label: "Agent Loop" },
   { test: /mcp(\s|$)|model context/i, label: "MCP Host" },
   { test: /graphrag|\brag\b|memory recall|content-library|global library/i, label: "GraphRAG / RAG" },
   { test: /state machine|router|guard decorator|strategy pattern/i, label: "State Machine Router" },
@@ -36,9 +36,9 @@ export const PROJECT_HIGHLIGHTS: Record<string, readonly string[]> = {
   aiwake: [
     "Agent Orchestration",
     "GraphRAG / RAG",
-    "State Machine Router",
-    "MCP Protocol",
-    "Dual-Model Debate",
+    "Metacognition Matrix",
+    "Dialectic Friction",
+    "Neural Framework",
   ],
   wonder_feed: [
     "Agent Orchestration",

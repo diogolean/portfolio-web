@@ -15,7 +15,7 @@ Malformed project metadata, missing telemetry, and a missing timeline degrade to
 
 `components/HexMosaic.tsx` renders the named seven-project cluster:
 
-- Center: `aiwake`
+- Center: `aiwake` — Autonomous Multi-Agent Sentience Engine (Synthetic Consciousness Pipeline)
 - Ring, clockwise from 12 o'clock: `ancient_knowledge`, `anna_protocol`, `wonder_feed`, `endless_summer_paradise`, `momma_circle`, `master_mei`
 
 The ring uses six unit vectors around the center: `(0,-1)`, `(0.866,-0.5)`, `(0.866,0.5)`, `(0,1)`, `(-0.866,0.5)`, and `(-0.866,-0.5)`. Each is multiplied by `--hex-ring-distance`, so the ring automatically stays aligned when tile dimensions or gaps change.
