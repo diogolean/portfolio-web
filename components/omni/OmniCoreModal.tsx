@@ -501,70 +501,69 @@ function NodeCanvas({
 
   return (
     <div className="lg:sticky lg:top-0">
-      <div className="mb-4 flex items-center justify-between">
+      <div className="mb-4 flex items-center">
         <div className="flex items-center gap-2">
           <span className="h-2 w-2 rounded-full bg-[#00FF9D] shadow-[0_0_14px_#00FF9D]" />
           <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-zinc-500">
             Live topology
           </span>
         </div>
-        <span className="font-mono text-[10px] text-zinc-700">
-          ACTIVE_STEP={String(activeStepIndex + 1).padStart(2, "0")}
-        </span>
       </div>
 
       <div
-        className="relative aspect-[560/520] min-h-[430px] overflow-hidden bg-[#07090D]/70 shadow-[0_28px_80px_rgba(0,0,0,0.36)]"
+        className="relative mx-auto aspect-[560/520] w-full max-w-[90vw] overflow-hidden bg-[#07090D]/70 shadow-[0_28px_80px_rgba(0,0,0,0.36)] md:max-w-none md:scale-100 md:min-h-[430px]"
         onMouseMove={updateMagnet}
         onMouseLeave={resetMagnet}
       >
           <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.025)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.025)_1px,transparent_1px)] bg-[size:28px_28px]" />
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_45%,rgba(16,185,129,0.09),transparent_52%)]" />
-          <svg
-            viewBox={`0 0 ${CANVAS_WIDTH} ${CANVAS_HEIGHT}`}
-            className="pointer-events-none absolute inset-0 h-full w-full"
-            role="img"
-            aria-label="Synchronized Omni Engine architecture graph"
-          >
-            {NODES.map((node, index) => (
-              <g key={`core-${node.id}`} opacity="0.2">
-                <MagneticRadialEdge
-                  nodeIndex={index}
-                  pointerX={pointerX}
-                  pointerY={pointerY}
-                  pointerActive={pointerActive}
-                />
-              </g>
-            ))}
-            {EDGES.map(([from, to]) => {
-              const active = activeNodeIndex === from || activeNodeIndex === to;
-              return (
-                <g key={`${from}-${to}`} opacity={active ? 1 : 0.24}>
-                  <MagneticEdge
-                    from={from}
-                    to={to}
+          <div className="absolute inset-0 origin-center scale-[0.85] sm:scale-90 md:scale-100">
+            <svg
+              viewBox={`0 0 ${CANVAS_WIDTH} ${CANVAS_HEIGHT}`}
+              className="pointer-events-none absolute inset-0 h-full w-full"
+              role="img"
+              aria-label="Synchronized Omni Engine architecture graph"
+            >
+              {NODES.map((node, index) => (
+                <g key={`core-${node.id}`} opacity="0.2">
+                  <MagneticRadialEdge
+                    nodeIndex={index}
                     pointerX={pointerX}
                     pointerY={pointerY}
                     pointerActive={pointerActive}
                   />
                 </g>
-              );
-            })}
-          </svg>
+              ))}
+              {EDGES.map(([from, to]) => {
+                const active = activeNodeIndex === from || activeNodeIndex === to;
+                return (
+                  <g key={`${from}-${to}`} opacity={active ? 1 : 0.24}>
+                    <MagneticEdge
+                      from={from}
+                      to={to}
+                      pointerX={pointerX}
+                      pointerY={pointerY}
+                      pointerActive={pointerActive}
+                    />
+                  </g>
+                );
+              })}
+            </svg>
 
-          {NODES.map((node, index) => (
-            <FloatingHexNode
-              key={node.id}
-              node={node}
-              index={index}
-              active={activeNodeIndex === index}
-              pointerX={pointerX}
-              pointerY={pointerY}
-              pointerActive={pointerActive}
-              onSelect={() => onSelectNode(index)}
-            />
-          ))}
-          <ObserverCoreNode />
+            {NODES.map((node, index) => (
+              <FloatingHexNode
+                key={node.id}
+                node={node}
+                index={index}
+                active={activeNodeIndex === index}
+                pointerX={pointerX}
+                pointerY={pointerY}
+                pointerActive={pointerActive}
+                onSelect={() => onSelectNode(index)}
+              />
+            ))}
+            <ObserverCoreNode />
+          </div>
       </div>
 
       <AnimatePresence mode="wait">
