@@ -9,6 +9,13 @@ import {
 } from "framer-motion";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 
+export const SPINE_SPRING = {
+  stiffness: 140,
+  damping: 24,
+  mass: 0.4,
+  restDelta: 0.001,
+} as const;
+
 export default function TimelineSpine({
   progress,
   onReachedNodeChange,
@@ -55,12 +62,7 @@ export default function TimelineSpine({
       return outputs[activeStop] ?? outputs[0];
     }
   );
-  const easedBeamProgress = useSpring(beamTarget, {
-    stiffness: 140,
-    damping: 24,
-    mass: 0.4,
-    restDelta: 0.001,
-  });
+  const easedBeamProgress = useSpring(beamTarget, SPINE_SPRING);
   const beamProgress = useTransform(easedBeamProgress, (value) => {
     const target = beamTarget.get();
     return Math.abs(value - target) <= 0.001 ? target : value;

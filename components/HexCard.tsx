@@ -1,12 +1,16 @@
 "use client";
 
-import { motion, useMotionValue, useSpring } from "framer-motion";
+import {
+  motion,
+  useMotionValue,
+  useSpring,
+  useTransform,
+  type MotionValue,
+} from "framer-motion";
 import Image from "next/image";
 import {
-  useRef,
   useState,
   type MouseEvent,
-  type PointerEvent,
 } from "react";
 import type { ProjectMeta } from "@/lib/types";
 import { playHexHoverBeep } from "@/lib/audio-fx";
@@ -15,6 +19,11 @@ interface HexCardProps {
   project: ProjectMeta;
   onNavigate?: (slug: string) => void;
   isLaunching?: boolean;
+  mosaicTilt?: {
+    rotateX: MotionValue<number>;
+    rotateY: MotionValue<number>;
+    z: MotionValue<number>;
+  };
 }
 
 function readCssNumber(name: string, fallback: number) {
@@ -23,10 +32,14 @@ function readCssNumber(name: string, fallback: number) {
   return Number.isFinite(value) ? value : fallback;
 }
 
-export default function HexCard({ project, onNavigate, isLaunching = false }: HexCardProps) {
+export default function HexCard({
+  project,
+  onNavigate,
+  isLaunching = false,
+  mosaicTilt,
+}: HexCardProps) {
   const isRegistry = project.status === "registry";
   const coverSrc = project.cover_image ?? project.image ?? null;
-  const pointerStart = useRef<{ id: number; x: number; y: number } | null>(null);
   const rawRotateX = useMotionValue(0);
   const rawRotateY = useMotionValue(0);
   const rawScale = useMotionValue(1);
@@ -34,6 +47,20 @@ export default function HexCard({ project, onNavigate, isLaunching = false }: He
   const rotateX = useSpring(rawRotateX, springConfig);
   const rotateY = useSpring(rawRotateY, springConfig);
   const scale = useSpring(rawScale, springConfig);
+  const fallbackMosaicX = useMotionValue(0);
+  const fallbackMosaicY = useMotionValue(0);
+  const fallbackMosaicZ = useMotionValue(0);
+  const mosaicRotateX = mosaicTilt?.rotateX ?? fallbackMosaicX;
+  const mosaicRotateY = mosaicTilt?.rotateY ?? fallbackMosaicY;
+  const mosaicZ = mosaicTilt?.z ?? fallbackMosaicZ;
+  const visualRotateX = useTransform(
+    [rotateX, mosaicRotateX],
+    ([cardAngle, gridAngle]) => Number(cardAngle) + Number(gridAngle),
+  );
+  const visualRotateY = useTransform(
+    [rotateY, mosaicRotateY],
+    ([cardAngle, gridAngle]) => Number(cardAngle) + Number(gridAngle),
+  );
   const [hovered, setHovered] = useState(false);
 
   function handleMouseMove(e: MouseEvent<HTMLButtonElement>) {
@@ -64,38 +91,14 @@ export default function HexCard({ project, onNavigate, isLaunching = false }: He
     rawScale.set(1);
   }
 
-  function handlePointerDown(event: PointerEvent<HTMLButtonElement>) {
-    if (event.button !== 0) return;
-    pointerStart.current = {
-      id: event.pointerId,
-      x: event.clientX,
-      y: event.clientY,
-    };
-  }
-
-  function handlePointerUp(event: PointerEvent<HTMLButtonElement>) {
-    const start = pointerStart.current;
-    pointerStart.current = null;
-    if (!start || start.id !== event.pointerId) return;
-    const travel = Math.hypot(event.clientX - start.x, event.clientY - start.y);
-    if (travel <= 8) onNavigate?.(project.slug);
-  }
-
   return (
     <button
       type="button"
-      onPointerDown={handlePointerDown}
-      onPointerUp={handlePointerUp}
-      onPointerCancel={() => {
-        pointerStart.current = null;
-      }}
-      onClick={(event) => {
-        if (event.detail === 0) onNavigate?.(project.slug);
-      }}
+      onClick={() => onNavigate?.(project.slug)}
       onMouseMove={handleMouseMove}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
-      className="hex-hitbox touch-pan-y cursor-pointer select-none border-0 bg-transparent p-0 text-inherit pointer-events-auto [&_*]:pointer-events-none"
+      className="hex-hitbox pointer-events-auto relative z-10 touch-pan-y cursor-pointer select-none border-0 bg-transparent p-0 text-inherit hover:z-30 focus-visible:z-30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/80 [&_*]:pointer-events-none"
       data-hovered={hovered || undefined}
       suppressHydrationWarning
     >
@@ -117,8 +120,9 @@ export default function HexCard({ project, onNavigate, isLaunching = false }: He
         }
         className="pointer-events-none hex-frame hex-tilt flex transform-gpu items-center justify-center will-change-transform"
         style={{
-          rotateX,
-          rotateY,
+          rotateX: visualRotateX,
+          rotateY: visualRotateY,
+          z: mosaicZ,
           scale,
           transformPerspective: 1000,
           transformStyle: "preserve-3d",

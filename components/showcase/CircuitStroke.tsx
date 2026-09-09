@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, type MotionValue } from "framer-motion";
 
 export const CIRCUIT_BASE_STROKE = "rgba(16, 185, 129, 0.35)";
 export const CIRCUIT_PULSE_STROKE = "#34d399";
@@ -13,12 +13,12 @@ export default function CircuitStroke({
   d,
   pathLength,
 }: {
-  d: string;
+  d: string | MotionValue<string>;
   pathLength?: number;
 }) {
   return (
     <>
-      <path
+      <motion.path
         d={d}
         pathLength={pathLength}
         fill="none"

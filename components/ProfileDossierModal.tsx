@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import type { UserProfile } from "@/lib/types";
+import CloseButton from "@/components/showcase/CloseButton";
 
 interface ProfileDossierModalProps {
   open: boolean;
@@ -100,14 +101,10 @@ export default function ProfileDossierModal({
                   Academic & career uplink
                 </h2>
               </div>
-              <button
+              <CloseButton
                 ref={closeRef}
-                type="button"
                 onClick={onClose}
-                className="shrink-0 border border-zinc-700 bg-black/40 px-3 py-2 font-mono text-[10px] uppercase tracking-[0.16em] text-zinc-300 transition hover:border-emerald-400/60 hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
-              >
-                [ESC] / Close
-              </button>
+              />
             </header>
 
             <div className="relative z-10 min-h-0 flex-1 overflow-y-auto px-5 py-6 sm:px-6">

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { IBM_Plex_Sans, IBM_Plex_Mono } from "next/font/google";
 import Header from "@/components/layout/Header";
+import OmniCoreModal from "@/components/omni/OmniCoreModal";
 import PageTransition from "@/components/PageTransition";
 import "./globals.css";
 
@@ -30,6 +31,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className={`${plexSans.variable} ${plexMono.variable}`}>
       <body className="font-sans antialiased">
         <Header />
+        <OmniCoreModal />
         <PageTransition>{children}</PageTransition>
       </body>
     </html>

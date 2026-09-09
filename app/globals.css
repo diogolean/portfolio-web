@@ -45,9 +45,59 @@ html {
   scroll-behavior: smooth;
 }
 
+.glow-pulse-trigger {
+  border-radius: 9999px;
+  transition:
+    color 220ms ease,
+    text-shadow 220ms ease,
+    filter 220ms ease;
+}
+
+.glow-pulse-trigger:hover,
+.glow-pulse-trigger:focus-visible {
+  color: #e9fff7;
+  animation: glow-pulse 1.8s ease-in-out infinite;
+  text-shadow:
+    0 0 8px rgb(0 255 157 / 0.45),
+    0 0 22px rgb(16 185 129 / 0.3);
+}
+
+@keyframes glow-pulse {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 4px rgb(16 185 129 / 0.2));
+  }
+  50% {
+    filter: drop-shadow(0 0 14px rgb(16 185 129 / 0.48));
+  }
+}
+
+.omni-modal-scroll {
+  scrollbar-color: rgb(16 185 129 / 0.38) #090a0f;
+  scrollbar-width: thin;
+}
+
+.omni-modal-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.omni-modal-scroll::-webkit-scrollbar-track {
+  background: #090a0f;
+}
+
+.omni-modal-scroll::-webkit-scrollbar-thumb {
+  background: rgb(16 185 129 / 0.38);
+  border-radius: 9999px;
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
+  }
+
+  .glow-pulse-trigger:hover,
+  .glow-pulse-trigger:focus-visible {
+    animation: none;
   }
 }
 

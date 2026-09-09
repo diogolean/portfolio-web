@@ -2,6 +2,7 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import { useState, type MouseEvent } from "react";
+import { openOmniCore } from "@/components/omni/OmniCoreModal";
 
 const NAV_ITEMS = [
   { label: "Profile", id: "profile" },
@@ -27,7 +28,7 @@ export default function Header() {
   };
 
   return (
-    <header className="pointer-events-none fixed left-1/2 top-8 z-[100] -translate-x-1/2">
+    <header className="pointer-events-none fixed left-1/2 top-8 z-40 -translate-x-1/2">
       <motion.nav
         aria-label="Primary navigation"
         layout
@@ -46,19 +47,20 @@ export default function Header() {
         transition={{ layout: { duration: 0.5, ease: [0.16, 1, 0.3, 1] } }}
         className="pointer-events-auto relative z-10 flex max-w-[calc(100vw-2rem)] items-center gap-2 overflow-hidden rounded-full border border-neutral-800/80 bg-neutral-950/80 px-4 py-1.5 backdrop-blur-md will-change-[width]"
       >
-        <a
-          href="/#mosaic"
-          aria-label="Go to project mosaic"
-          onClick={(event) => {
+        <button
+          type="button"
+          aria-label="Open Omni Engine core architecture"
+          aria-haspopup="dialog"
+          onClick={() => {
             setExpanded(true);
-            handleScroll("mosaic")(event);
+            openOmniCore();
           }}
-          className="pointer-events-auto relative z-10 flex shrink-0 cursor-pointer items-center outline-none"
+          className="glow-pulse-trigger pointer-events-auto relative z-10 flex shrink-0 cursor-pointer items-center outline-none"
         >
           <span className="whitespace-nowrap font-mono text-xs tracking-widest text-emerald-400 [text-shadow:0_0_6px_rgba(52,211,153,0.35)]">
             OMNI-ENGINE
           </span>
-        </a>
+        </button>
 
         <AnimatePresence initial={false}>
           {expanded && (

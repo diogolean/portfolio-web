@@ -7,12 +7,11 @@ import {
   useScroll,
   useSpring,
   useTransform,
+  type MotionValue,
 } from "framer-motion";
 import {
   useEffect,
   useRef,
-  type PointerEvent,
-  type TouchEvent,
 } from "react";
 import type { ProjectMeta } from "@/lib/types";
 import HexCard from "./HexCard";
@@ -24,6 +23,12 @@ interface HexMosaicProps {
 }
 
 const CENTER_SLUG = "aiwake";
+
+interface MosaicTilt {
+  rotateX: MotionValue<number>;
+  rotateY: MotionValue<number>;
+  z: MotionValue<number>;
+}
 
 const RING: { slug: string; dx: number; dy: number }[] = [
   { slug: "ancient_knowledge", dx: 0, dy: -1 },
@@ -54,9 +59,14 @@ export default function HexMosaic({
   const containerRef = useRef<HTMLDivElement>(null);
   const isTouching = useRef(false);
   const isFinePointer = useRef(false);
-  const tiltX = useMotionValue(12);
-  const tiltY = useMotionValue(-14);
-  const depth = useMotionValue(-20);
+  const tiltFrame = useRef<number | null>(null);
+  const pendingPointer = useRef<{
+    clientX: number;
+    clientY: number;
+  } | null>(null);
+  const tiltX = useMotionValue(0);
+  const tiltY = useMotionValue(0);
+  const depth = useMotionValue(0);
   const springConfig = { stiffness: 150, damping: 25, mass: 0.55 };
   const rotateX = useSpring(tiltX, springConfig);
   const rotateY = useSpring(tiltY, springConfig);
@@ -82,27 +92,41 @@ export default function HexMosaic({
     const updatePointerMode = () => {
       isFinePointer.current = finePointer.matches;
     };
+    const trackMouse = (event: MouseEvent) => {
+      if (!finePointer.matches) return;
+      scheduleViewportTilt(event.clientX, event.clientY);
+    };
+    const trackTouch = (event: globalThis.TouchEvent) => {
+      const touch = event.touches[0];
+      if (!touch) return;
+      isTouching.current = true;
+      scheduleViewportTilt(touch.clientX, touch.clientY);
+    };
+    const releaseTouch = () => {
+      isTouching.current = false;
+      pendingPointer.current = null;
+      tiltX.set(scrollRotateX.get());
+      tiltY.set(scrollRotateY.get());
+      depth.set(scrollTranslateZ.get());
+    };
     updatePointerMode();
 
-    function onWindowMouseMove(e: globalThis.MouseEvent) {
-      if (!finePointer.matches) return;
-      const x = e.clientX / window.innerWidth - 0.5;
-      const y = e.clientY / window.innerHeight - 0.5;
-      const max = readCssDeg("--global-tilt-max", 15);
-      const lift = readCssPx("--cluster-z", 20);
-
-      tiltX.set(-y * max);
-      tiltY.set(x * max);
-      depth.set(lift);
-    }
-
     finePointer.addEventListener("change", updatePointerMode);
-    window.addEventListener("mousemove", onWindowMouseMove);
+    window.addEventListener("mousemove", trackMouse, { passive: true });
+    window.addEventListener("touchstart", trackTouch, { passive: true });
+    window.addEventListener("touchmove", trackTouch, { passive: true });
+    window.addEventListener("touchend", releaseTouch, { passive: true });
+    window.addEventListener("touchcancel", releaseTouch, { passive: true });
     return () => {
       finePointer.removeEventListener("change", updatePointerMode);
-      window.removeEventListener("mousemove", onWindowMouseMove);
+      window.removeEventListener("mousemove", trackMouse);
+      window.removeEventListener("touchstart", trackTouch);
+      window.removeEventListener("touchmove", trackTouch);
+      window.removeEventListener("touchend", releaseTouch);
+      window.removeEventListener("touchcancel", releaseTouch);
+      if (tiltFrame.current !== null) cancelAnimationFrame(tiltFrame.current);
     };
-  }, [depth, tiltX, tiltY]);
+  }, [depth, scrollRotateX, scrollRotateY, scrollTranslateZ, tiltX, tiltY]);
 
   useMotionValueEvent(scrollRotateX, "change", (value) => {
     if (!isTouching.current && !isFinePointer.current) {
@@ -122,47 +146,36 @@ export default function HexMosaic({
     }
   });
 
-  function updateTilt(clientX: number, clientY: number, element: HTMLDivElement) {
-    const rect = element.getBoundingClientRect();
-    if (!rect.width || !rect.height) return;
-    const x = (clientX - rect.left) / rect.width - 0.5;
-    const y = (clientY - rect.top) / rect.height - 0.5;
-    const max = readCssDeg("--global-tilt-max", 25);
+  function updateViewportTilt(clientX: number, clientY: number) {
+    const halfWidth = Math.max(1, window.innerWidth / 2);
+    const halfHeight = Math.max(1, window.innerHeight / 2);
+    const xNorm = Math.max(-1, Math.min(1, (clientX - halfWidth) / halfWidth));
+    const yNorm = Math.max(-1, Math.min(1, (clientY - halfHeight) / halfHeight));
+    const max = readCssDeg("--global-tilt-max", 15);
 
-    tiltX.set(-y * max);
-    tiltY.set(x * max);
+    tiltX.set(-yNorm * max);
+    tiltY.set(xNorm * max);
     depth.set(readCssPx("--cluster-z", 20));
   }
 
-  function handlePointerMove(event: PointerEvent<HTMLDivElement>) {
-    if (event.pointerType !== "mouse") return;
-    updateTilt(event.clientX, event.clientY, event.currentTarget);
+  function scheduleViewportTilt(clientX: number, clientY: number) {
+    pendingPointer.current = {
+      clientX,
+      clientY,
+    };
+    if (tiltFrame.current !== null) return;
+    tiltFrame.current = requestAnimationFrame(() => {
+      const pointer = pendingPointer.current;
+      tiltFrame.current = null;
+      if (pointer) updateViewportTilt(pointer.clientX, pointer.clientY);
+    });
   }
 
-  function handleTouchStart(event: TouchEvent<HTMLDivElement>) {
-    isTouching.current = true;
-    const touch = event.touches[0];
-    if (touch) updateTilt(touch.clientX, touch.clientY, event.currentTarget);
-  }
-
-  function handleTouchMove(event: TouchEvent<HTMLDivElement>) {
-    const touch = event.touches[0];
-    if (touch) updateTilt(touch.clientX, touch.clientY, event.currentTarget);
-  }
-
-  function restoreScrollTilt() {
-    isTouching.current = false;
-    tiltX.set(scrollRotateX.get());
-    tiltY.set(scrollRotateY.get());
-    depth.set(scrollTranslateZ.get());
-  }
-
-  function resetPointerTilt(event: PointerEvent<HTMLDivElement>) {
-    if (event.pointerType !== "mouse") return;
-    tiltX.set(0);
-    tiltY.set(0);
-    depth.set(0);
-  }
+  const mosaicTilt: MosaicTilt = {
+    rotateX,
+    rotateY,
+    z: clusterZ,
+  };
 
   return (
     <div className="flex flex-col items-center gap-16">
@@ -171,22 +184,7 @@ export default function HexMosaic({
           ref={containerRef}
           className="hex-cluster touch-pan-y transform-gpu will-change-transform"
           data-testid="home-hex-mosaic"
-          onPointerMove={handlePointerMove}
-          onPointerUp={resetPointerTilt}
-          onPointerCancel={resetPointerTilt}
-          onPointerLeave={resetPointerTilt}
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={restoreScrollTilt}
-          onTouchCancel={restoreScrollTilt}
-          style={{
-            rotateX,
-            rotateY,
-            z: clusterZ,
-            transformPerspective: 1200,
-            transformStyle: "preserve-3d",
-            touchAction: "pan-y",
-          }}
+          style={{ touchAction: "pan-y" }}
         >
           <RingSlot
             project={center}
@@ -194,6 +192,7 @@ export default function HexMosaic({
             dy={0}
             onNavigate={onNavigate}
             launchingSlug={launchingSlug}
+            mosaicTilt={mosaicTilt}
           />
           {ring.map((slot) => (
             <RingSlot
@@ -203,6 +202,7 @@ export default function HexMosaic({
               dy={slot.dy}
               onNavigate={onNavigate}
               launchingSlug={launchingSlug}
+              mosaicTilt={mosaicTilt}
             />
           ))}
         </motion.div>
@@ -230,9 +230,17 @@ interface RingSlotProps {
   dy: number;
   onNavigate?: (slug: string) => void;
   launchingSlug?: string | null;
+  mosaicTilt: MosaicTilt;
 }
 
-function RingSlot({ project, dx, dy, onNavigate, launchingSlug }: RingSlotProps) {
+function RingSlot({
+  project,
+  dx,
+  dy,
+  onNavigate,
+  launchingSlug,
+  mosaicTilt,
+}: RingSlotProps) {
   return (
     <div
       className="hex-slot"
@@ -246,6 +254,7 @@ function RingSlot({ project, dx, dy, onNavigate, launchingSlug }: RingSlotProps)
         project={project}
         onNavigate={onNavigate}
         isLaunching={launchingSlug === project.slug}
+        mosaicTilt={mosaicTilt}
       />
     </div>
   );

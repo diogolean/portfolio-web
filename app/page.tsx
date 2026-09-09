@@ -3,6 +3,7 @@ import AboutSection from "@/components/AboutSection";
 import GitHubTelemetry from "@/components/home/GitHubTelemetry";
 import HexBoard from "@/components/home/HexBoard";
 import HomeAtmosphere from "@/components/home/HomeAtmosphere";
+import OmniTriggerTitle from "@/components/omni/OmniTriggerTitle";
 import LetsConnect from "@/components/sections/LetsConnect";
 
 export default async function HomePage() {
@@ -11,8 +12,8 @@ export default async function HomePage() {
   return (
     <HomeAtmosphere>
     <main className="mx-auto flex min-h-screen max-w-5xl flex-col items-center overflow-x-clip px-6 pb-24 pt-20">
-      <h1 className="text-2xl sm:text-2xl md:text-4xl font-bold tracking-tight max-w-5xl text-center mb-3">
-        An ecosystem of automated pipelines.
+      <h1 className="mb-3 flex justify-center">
+        <OmniTriggerTitle />
       </h1>
       <p className="max-w-lg text-center text-sm text-muted">
         Each channel is a swappable engine. This site is a static registry of how they
