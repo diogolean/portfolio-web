@@ -32,9 +32,9 @@ interface MosaicTilt {
 
 const RING: { slug: string; dx: number; dy: number }[] = [
   { slug: "endless_summer_paradise", dx: 0, dy: -1 },
-  { slug: "anna_protocol", dx: 0.866, dy: -0.5 },
+  { slug: "ancient_knowledge", dx: 0.866, dy: -0.5 },
   { slug: "wonder_feed", dx: 0.866, dy: 0.5 },
-  { slug: "ancient_knowledge", dx: 0, dy: 1 },
+  { slug: "anna_protocol", dx: 0, dy: 1 },
   { slug: "momma_circle", dx: -0.866, dy: 0.5 },
   { slug: "master_mei", dx: -0.866, dy: -0.5 },
 ];
