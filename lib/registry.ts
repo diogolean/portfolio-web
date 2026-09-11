@@ -217,16 +217,25 @@ export const PROJECT_CAROUSEL_IMAGES: Record<string, readonly string[]> = {
 
 /**
  * Verified live Backblaze objects in MediaupscaleStorage.
- * Keys are canonical project slugs. HTTP URLs win over local fallbacks in
+ * Keys are canonical project slugs. A string is the hero reel; an array is
+ * newest-first gallery (hero is [0]). HTTP URLs win over local fallbacks in
  * resolveHeroMedia / listPublicVideoUrls. anna_protocol is omitted because
  * it is an image-carousel channel with no source .mp4.
  */
-export const PROJECT_B2_VIDEOS: Record<string, string> = {
+type ProjectB2VideoEntry = string | readonly string[];
+
+export const PROJECT_B2_VIDEOS: Record<string, ProjectB2VideoEntry> = {
   ancient_knowledge: `${B2_PUBLIC_BASE}/reel_this_geode_hides_a_secret_that_d_v01.mp4`,
   master_mei: `${B2_PUBLIC_BASE}/reel_your_mind_s_true_owner_isn_t_you_v30.mp4`,
   aiwake: `${B2_PUBLIC_BASE}/aiwake_debate_20260902_074022_cc7f88.mp4`,
-  wonder_feed: `${B2_PUBLIC_BASE}/lofi_reel_forgiveness_putting_the_weight_down_20260828_004447_v01.mp4`,
-  momma_circle: `${B2_PUBLIC_BASE}/lofi_reel_gentle_discipline_20260819_225322_v01.mp4`,
+  wonder_feed: [
+    `${B2_PUBLIC_BASE}/lofi_reel_perseverance_getting_up_anyway_20260911_044441_v01.mp4`,
+    `${B2_PUBLIC_BASE}/lofi_reel_distance_silence_that_speaks_20260911_023926_v01.mp4`,
+  ],
+  momma_circle: [
+    `${B2_PUBLIC_BASE}/lofi_reel_sleep_routines_as_safety_20260911_050121_v01.mp4`,
+    `${B2_PUBLIC_BASE}/lofi_reel_presence_phones_down_eye_contact_20260911_032129_v01.mp4`,
+  ],
   endless_summer_paradise: `${B2_PUBLIC_BASE}/The_Terminus_1778730630_V4_LIVE_ULTIMATE_MASTER.mp4`,
 };
 
@@ -257,21 +266,30 @@ export function getProjectCarouselImages(slug: string): string[] {
   return declared.filter((url) => publicAssetExists(url));
 }
 
-export function getProjectB2Video(slug: string): string | null {
-  if (isImageOnlyProject(slug)) return null;
-  const canonical = canonicalProjectSlug(slug);
-  return PROJECT_B2_VIDEOS[canonical] ?? PROJECT_B2_VIDEOS[slug] ?? null;
+function asB2VideoList(entry: ProjectB2VideoEntry | undefined): string[] {
+  if (!entry) return [];
+  return typeof entry === "string" ? [entry] : [...entry];
 }
 
-export function listProjectB2Videos(): Record<string, string | null> {
+export function getProjectB2Videos(slug: string): string[] {
+  if (isImageOnlyProject(slug)) return [];
+  const canonical = canonicalProjectSlug(slug);
+  return asB2VideoList(PROJECT_B2_VIDEOS[canonical] ?? PROJECT_B2_VIDEOS[slug]);
+}
+
+export function getProjectB2Video(slug: string): string | null {
+  return getProjectB2Videos(slug)[0] ?? null;
+}
+
+export function listProjectB2Videos(): Record<string, string[]> {
   return {
-    endless_summer_paradise: getProjectB2Video("endless_summer_paradise"),
-    ancient_knowledge: getProjectB2Video("ancient_knowledge"),
-    master_mei: getProjectB2Video("master_mei"),
-    annas_garden: getProjectB2Video("annas_garden"),
-    aiwake: getProjectB2Video("aiwake"),
-    wonder_feed: getProjectB2Video("wonder_feed"),
-    momma_circle: getProjectB2Video("momma_circle"),
+    endless_summer_paradise: getProjectB2Videos("endless_summer_paradise"),
+    ancient_knowledge: getProjectB2Videos("ancient_knowledge"),
+    master_mei: getProjectB2Videos("master_mei"),
+    annas_garden: getProjectB2Videos("annas_garden"),
+    aiwake: getProjectB2Videos("aiwake"),
+    wonder_feed: getProjectB2Videos("wonder_feed"),
+    momma_circle: getProjectB2Videos("momma_circle"),
   };
 }
 
@@ -434,8 +452,8 @@ async function firstPublicAsset(
 
 export async function listPublicVideoUrls(slug: string) {
   const urls = await listPublicDir("videos", slug, VIDEO_EXT);
-  const remote = getProjectB2Video(slug);
-  return remote ? [remote, ...urls.filter((url) => url !== remote)] : urls;
+  const remotes = getProjectB2Videos(slug);
+  return [...remotes, ...urls.filter((url) => !remotes.includes(url))];
 }
 
 export async function resolveHeroMedia(slug: string, architecture: ProjectArchitecture | null) {
