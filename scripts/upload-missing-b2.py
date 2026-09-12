@@ -26,11 +26,11 @@ UPLOADS: dict[str, Path] = {
     "wonder_feed": DRIVE
     / "wonder_feed"
     / "clips"
-    / "lofi_reel_grief_learning_to_carry_it_20260911_234807_v01.mp4",
+    / "lofi_reel_grief_learning_to_carry_it_20260912_055532_v01.mp4",
     "momma_circle": DRIVE
     / "momma_circle"
     / "clips"
-    / "lofi_reel_self_compassion_good_enough_mother_20260911_235455_v01.mp4",
+    / "lofi_reel_self_compassion_good_enough_mother_20260912_060212_v01.mp4",
     "endless_summer_paradise": ESP_PROD
     / "The_Terminus_1778730630_V4_LIVE"
     / "The_Terminus_1778730630_V4_LIVE_ULTIMATE_MASTER.mp4",

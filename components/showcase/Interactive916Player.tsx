@@ -31,7 +31,7 @@ export default function Interactive916Player({
   const videoRef = useRef<HTMLVideoElement>(null);
   const slideIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const slideTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const videos = assets.filter((asset) => asset.kind === "video").slice(0, 5);
+  const videos = assets.filter((asset) => asset.kind === "video").slice(0, 6);
   const stills = assets.filter((asset) => asset.kind === "image").slice(0, 18);
   const isCarousel =
     mediaKind === "carousel" || mediaKind === "image" || (videos.length === 0 && stills.length > 0);
@@ -372,6 +372,8 @@ export default function Interactive916Player({
         <div className="mt-2 flex justify-center gap-3 font-mono text-[9px] text-zinc-500">
           {isCarousel ? (
             <span className="text-emerald-300">ARTWORK ({stills.length})</span>
+          ) : stills.length === 0 ? (
+            <span className="text-emerald-300">VIDEOS ({videos.length})</span>
           ) : (
             <>
               <button

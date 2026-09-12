@@ -26,19 +26,23 @@ load_dotenv(OMNI / ".env", override=False)
 
 from agents.media.b2_client import B2VideoUploader  # noqa: E402
 
-# Newest four complete shipped clips per channel (clips/ only — skip Reproved / @Experiments).
+# Newest six complete shipped clips per channel (clips/ only — skip Reproved / @Experiments).
 CLIPS: dict[str, list[Path]] = {
     "wonder_feed": [
-        DRIVE / "wonder_feed" / "clips" / "lofi_reel_grief_learning_to_carry_it_20260911_234807_v01.mp4",
-        DRIVE / "wonder_feed" / "clips" / "lofi_reel_perseverance_getting_up_anyway_20260911_231711_v01.mp4",
-        DRIVE / "wonder_feed" / "clips" / "lofi_reel_grief_learning_to_carry_it_20260911_174506_v01.mp4",
-        DRIVE / "wonder_feed" / "clips" / "lofi_reel_distance_silence_that_speaks_20260911_165222_v01.mp4",
+        DRIVE / "wonder_feed" / "clips" / "lofi_reel_grief_learning_to_carry_it_20260912_055532_v01.mp4",
+        DRIVE / "wonder_feed" / "clips" / "lofi_reel_distance_silence_that_speaks_20260912_053648_v01.mp4",
+        DRIVE / "wonder_feed" / "clips" / "lofi_reel_grief_learning_to_carry_it_20260912_051957_v01.mp4",
+        DRIVE / "wonder_feed" / "clips" / "lofi_reel_distance_silence_that_speaks_20260912_050447_v01.mp4",
+        DRIVE / "wonder_feed" / "clips" / "lofi_reel_perseverance_getting_up_anyway_20260912_044140_v01.mp4",
+        DRIVE / "wonder_feed" / "clips" / "lofi_reel_grief_learning_to_carry_it_20260912_041125_v01.mp4",
     ],
     "momma_circle": [
-        DRIVE / "momma_circle" / "clips" / "lofi_reel_self_compassion_good_enough_mother_20260911_235455_v01.mp4",
-        DRIVE / "momma_circle" / "clips" / "lofi_reel_sleep_routines_as_safety_20260911_232934_v01.mp4",
-        DRIVE / "momma_circle" / "clips" / "lofi_reel_presence_phones_down_eye_contact_20260911_175224_v01.mp4",
-        DRIVE / "momma_circle" / "clips" / "lofi_reel_sleep_routines_as_safety_20260911_170117_v01.mp4",
+        DRIVE / "momma_circle" / "clips" / "lofi_reel_self_compassion_good_enough_mother_20260912_060212_v01.mp4",
+        DRIVE / "momma_circle" / "clips" / "lofi_reel_presence_phones_down_eye_contact_20260912_054415_v01.mp4",
+        DRIVE / "momma_circle" / "clips" / "lofi_reel_sleep_routines_as_safety_20260912_052741_v01.mp4",
+        DRIVE / "momma_circle" / "clips" / "lofi_reel_self_compassion_good_enough_mother_20260912_051136_v01.mp4",
+        DRIVE / "momma_circle" / "clips" / "lofi_reel_presence_phones_down_eye_contact_20260912_045351_v01.mp4",
+        DRIVE / "momma_circle" / "clips" / "lofi_reel_sleep_routines_as_safety_20260912_042524_v01.mp4",
     ],
 }
 

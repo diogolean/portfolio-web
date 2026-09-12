@@ -129,7 +129,10 @@ export async function discoverProjectMediaAssets(
         source: "external",
       });
     }
-  } else if (!imageOnly) {
+    return assets.filter((asset) => asset.kind === "video").slice(0, 6);
+  }
+
+  if (!imageOnly) {
     if (publicMedia.video) {
       add({
         kind: "video",
@@ -191,7 +194,7 @@ export async function discoverProjectMediaAssets(
   }
 
   return [
-    ...assets.filter((asset) => asset.kind === "video").slice(0, 5),
+    ...assets.filter((asset) => asset.kind === "video").slice(0, 6),
     ...assets.filter((asset) => asset.kind === "image").slice(0, 18),
   ];
 }
