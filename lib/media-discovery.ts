@@ -5,6 +5,7 @@ import { readdir, stat } from "fs/promises";
 import { extname, join, relative, sep } from "path";
 import type { ProjectArchitecture } from "./types";
 import {
+  getProjectB2Videos,
   getProjectCarouselImages,
   isImageOnlyProject,
   listPublicVideoUrls,
@@ -118,15 +119,25 @@ export async function discoverProjectMediaAssets(
     return assets.slice(0, 18);
   }
 
-  if (!imageOnly && publicMedia.video) {
-    add({
-      kind: "video",
-      url: publicMedia.video,
-      filename: publicMedia.video.split("/").at(-1) ?? "output.mp4",
-      source: /^https?:\/\//i.test(publicMedia.video) ? "external" : "public",
-    });
-  }
-  if (!imageOnly) {
+  const curatedVideos = getProjectB2Videos(slug);
+  if (!imageOnly && curatedVideos.length) {
+    for (const url of curatedVideos) {
+      add({
+        kind: "video",
+        url,
+        filename: url.split("/").at(-1) ?? "output.mp4",
+        source: "external",
+      });
+    }
+  } else if (!imageOnly) {
+    if (publicMedia.video) {
+      add({
+        kind: "video",
+        url: publicMedia.video,
+        filename: publicMedia.video.split("/").at(-1) ?? "output.mp4",
+        source: /^https?:\/\//i.test(publicMedia.video) ? "external" : "public",
+      });
+    }
     for (const url of await listPublicVideoUrls(slug)) {
       add({
         kind: "video",
@@ -141,6 +152,7 @@ export async function discoverProjectMediaAssets(
   for (const output of await newestMediaFiles(publicOutputRoot)) {
     const kind = mediaKind(output) ?? "image";
     if (imageOnly && kind === "video") continue;
+    if (kind === "video" && curatedVideos.length) continue;
     const relativePath = relative(join(process.cwd(), "public"), output).split(sep).join("/");
     add({
       kind,
@@ -157,6 +169,7 @@ export async function discoverProjectMediaAssets(
       for (const output of await newestMediaFiles(root)) {
         const kind = mediaKind(output) ?? "image";
         if (imageOnly && kind === "video") continue;
+        if (kind === "video" && curatedVideos.length) continue;
         const relativePath = relative(root, output).split(sep).join("/");
         add({
           kind,

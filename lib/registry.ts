@@ -229,12 +229,16 @@ export const PROJECT_B2_VIDEOS: Record<string, ProjectB2VideoEntry> = {
   master_mei: `${B2_PUBLIC_BASE}/reel_your_mind_s_true_owner_isn_t_you_v30.mp4`,
   aiwake: `${B2_PUBLIC_BASE}/aiwake_debate_20260902_074022_cc7f88.mp4`,
   wonder_feed: [
-    `${B2_PUBLIC_BASE}/lofi_reel_perseverance_getting_up_anyway_20260911_044441_v01.mp4`,
-    `${B2_PUBLIC_BASE}/lofi_reel_distance_silence_that_speaks_20260911_023926_v01.mp4`,
+    `${B2_PUBLIC_BASE}/lofi_reel_grief_learning_to_carry_it_20260911_234807_v01.mp4`,
+    `${B2_PUBLIC_BASE}/lofi_reel_perseverance_getting_up_anyway_20260911_231711_v01.mp4`,
+    `${B2_PUBLIC_BASE}/lofi_reel_grief_learning_to_carry_it_20260911_174506_v01.mp4`,
+    `${B2_PUBLIC_BASE}/lofi_reel_distance_silence_that_speaks_20260911_165222_v01.mp4`,
   ],
   momma_circle: [
-    `${B2_PUBLIC_BASE}/lofi_reel_sleep_routines_as_safety_20260911_050121_v01.mp4`,
-    `${B2_PUBLIC_BASE}/lofi_reel_presence_phones_down_eye_contact_20260911_032129_v01.mp4`,
+    `${B2_PUBLIC_BASE}/lofi_reel_self_compassion_good_enough_mother_20260911_235455_v01.mp4`,
+    `${B2_PUBLIC_BASE}/lofi_reel_sleep_routines_as_safety_20260911_232934_v01.mp4`,
+    `${B2_PUBLIC_BASE}/lofi_reel_presence_phones_down_eye_contact_20260911_175224_v01.mp4`,
+    `${B2_PUBLIC_BASE}/lofi_reel_sleep_routines_as_safety_20260911_170117_v01.mp4`,
   ],
   endless_summer_paradise: `${B2_PUBLIC_BASE}/The_Terminus_1778730630_V4_LIVE_ULTIMATE_MASTER.mp4`,
 };
@@ -451,9 +455,9 @@ async function firstPublicAsset(
 }
 
 export async function listPublicVideoUrls(slug: string) {
-  const urls = await listPublicDir("videos", slug, VIDEO_EXT);
   const remotes = getProjectB2Videos(slug);
-  return [...remotes, ...urls.filter((url) => !remotes.includes(url))];
+  if (remotes.length) return remotes;
+  return listPublicDir("videos", slug, VIDEO_EXT);
 }
 
 export async function resolveHeroMedia(slug: string, architecture: ProjectArchitecture | null) {
