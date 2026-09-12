@@ -26,23 +26,25 @@ load_dotenv(OMNI / ".env", override=False)
 
 from agents.media.b2_client import B2VideoUploader  # noqa: E402
 
+B2_PUBLIC_BASE = "https://MediaupscaleStorage.s3.us-east-005.backblazeb2.com"
+
 # Newest six complete shipped clips per channel (clips/ only — skip Reproved / @Experiments).
 CLIPS: dict[str, list[Path]] = {
     "wonder_feed": [
+        DRIVE / "wonder_feed" / "clips" / "lofi_reel_grief_learning_to_carry_it_20260912_140612_v01.mp4",
+        DRIVE / "wonder_feed" / "clips" / "lofi_reel_distance_silence_that_speaks_20260912_135217_v01.mp4",
         DRIVE / "wonder_feed" / "clips" / "lofi_reel_grief_learning_to_carry_it_20260912_055532_v01.mp4",
         DRIVE / "wonder_feed" / "clips" / "lofi_reel_distance_silence_that_speaks_20260912_053648_v01.mp4",
         DRIVE / "wonder_feed" / "clips" / "lofi_reel_grief_learning_to_carry_it_20260912_051957_v01.mp4",
         DRIVE / "wonder_feed" / "clips" / "lofi_reel_distance_silence_that_speaks_20260912_050447_v01.mp4",
-        DRIVE / "wonder_feed" / "clips" / "lofi_reel_perseverance_getting_up_anyway_20260912_044140_v01.mp4",
-        DRIVE / "wonder_feed" / "clips" / "lofi_reel_grief_learning_to_carry_it_20260912_041125_v01.mp4",
     ],
     "momma_circle": [
+        DRIVE / "momma_circle" / "clips" / "lofi_reel_presence_phones_down_eye_contact_20260912_165636_v01.mp4",
+        DRIVE / "momma_circle" / "clips" / "lofi_reel_sleep_routines_as_safety_20260912_163635_v01.mp4",
+        DRIVE / "momma_circle" / "clips" / "lofi_reel_self_compassion_good_enough_mother_20260912_141507_v01.mp4",
         DRIVE / "momma_circle" / "clips" / "lofi_reel_self_compassion_good_enough_mother_20260912_060212_v01.mp4",
         DRIVE / "momma_circle" / "clips" / "lofi_reel_presence_phones_down_eye_contact_20260912_054415_v01.mp4",
         DRIVE / "momma_circle" / "clips" / "lofi_reel_sleep_routines_as_safety_20260912_052741_v01.mp4",
-        DRIVE / "momma_circle" / "clips" / "lofi_reel_self_compassion_good_enough_mother_20260912_051136_v01.mp4",
-        DRIVE / "momma_circle" / "clips" / "lofi_reel_presence_phones_down_eye_contact_20260912_045351_v01.mp4",
-        DRIVE / "momma_circle" / "clips" / "lofi_reel_sleep_routines_as_safety_20260912_042524_v01.mp4",
     ],
 }
 
@@ -149,14 +151,21 @@ def main() -> int:
             extract_poster(ffmpeg, paths[0], POSTER_DIR / f"{slug}.webp")
             print(f"poster {POSTER_DIR / f'{slug}.webp'}")
             for src in paths:
+                url = f"{B2_PUBLIC_BASE}/{src.name}"
+                src_mb = src.stat().st_size / (1024 * 1024)
+                live_status, _ = verify(url)
+                if live_status in (200, 206):
+                    print(f"\nskip   {slug} {src.name} (already on B2)")
+                    results.append((slug, src, url, src_mb, src_mb))
+                    continue
                 dest = tmp_root / src.name
-                print(f"\nencode {slug} <- {src.name} ({src.stat().st_size / (1024 * 1024):.1f} MB)")
+                print(f"\nencode {slug} <- {src.name} ({src_mb:.1f} MB)")
                 encode_web_mp4(ffmpeg, src, dest)
                 web_mb = dest.stat().st_size / (1024 * 1024)
                 print(f"web    {dest.name} ({web_mb:.1f} MB)")
                 url = uploader.upload(dest, content_type="video/mp4")
                 print(f"url    {url}")
-                results.append((slug, src, url, src.stat().st_size / (1024 * 1024), web_mb))
+                results.append((slug, src, url, src_mb, web_mb))
 
     print("\n=== VERIFY ===")
     failed = False
