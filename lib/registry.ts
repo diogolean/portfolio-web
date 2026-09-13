@@ -198,6 +198,8 @@ export const PROJECT_MEDIA_KIND: Record<string, ProjectMediaKind> = {};
  */
 export const PROJECT_COVER_IMAGES: Record<string, string> = {
   anna_protocol: "/showcase/images/anna_protocol/cover.webp",
+  master_mei: "/showcase/images/master_mei/cover.webp",
+  endless_summer_paradise: "/showcase/images/endless_summer_paradise/cover.webp",
 };
 
 /**

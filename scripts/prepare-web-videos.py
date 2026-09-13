@@ -169,8 +169,12 @@ def main() -> int:
     with tempfile.TemporaryDirectory(prefix="portfolio-web-videos-") as tmp:
         tmp_root = Path(tmp)
         for slug, paths in clips.items():
-            extract_poster(ffmpeg, paths[0], POSTER_DIR / f"{slug}.webp")
-            print(f"poster {POSTER_DIR / f'{slug}.webp'}")
+            poster = POSTER_DIR / f"{slug}.webp"
+            if poster.is_file():
+                print(f"poster keep {poster}")
+            else:
+                extract_poster(ffmpeg, paths[0], poster)
+                print(f"poster {poster}")
             orientation = ORIENTATION.get(slug, "portrait")
             for src in paths:
                 url = f"{B2_PUBLIC_BASE}/{src.name}"

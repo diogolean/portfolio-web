@@ -2,6 +2,7 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import type { ProjectMediaAsset } from "@/lib/media-discovery";
 import type { ProjectMediaKind } from "@/lib/types";
 import type { PipelineNode } from "@/types/project";
@@ -28,6 +29,7 @@ export default function Interactive916Player({
   mediaKind = "video",
 }: Interactive916PlayerProps) {
   const frameRef = useRef<HTMLDivElement>(null);
+  const stageRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const slideIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const slideTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -44,8 +46,9 @@ export default function Interactive916Player({
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [ready, setReady] = useState(false);
-  const [isInViewport, setIsInViewport] = useState(false);
   const [failedAssetUrls, setFailedAssetUrls] = useState<Set<string>>(() => new Set());
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [cinemaPortal, setCinemaPortal] = useState(false);
   const poster = stills[0] ?? assets.find((asset) => asset.kind === "image");
   const availableVideos = videos.filter((asset) => !failedAssetUrls.has(asset.url));
   const filteredAssets = isCarousel
@@ -88,15 +91,43 @@ export default function Interactive916Player({
   }, [heroAsset?.url]);
 
   useEffect(() => {
-    const frame = frameRef.current;
-    if (!frame) return;
-    const observer = new IntersectionObserver(
-      ([entry]) => setIsInViewport(entry.isIntersecting),
-      { threshold: 0.1 }
-    );
-    observer.observe(frame);
-    return () => observer.disconnect();
+    const syncFullscreen = () => {
+      const doc = document as Document & { webkitFullscreenElement?: Element | null };
+      const active = document.fullscreenElement ?? doc.webkitFullscreenElement ?? null;
+      if (active === stageRef.current) {
+        setCinemaPortal(false);
+        setIsFullscreen(true);
+      } else if (active) {
+        setCinemaPortal(false);
+        setIsFullscreen(false);
+      }
+    };
+    document.addEventListener("fullscreenchange", syncFullscreen);
+    document.addEventListener("webkitfullscreenchange", syncFullscreen);
+    return () => {
+      document.removeEventListener("fullscreenchange", syncFullscreen);
+      document.removeEventListener("webkitfullscreenchange", syncFullscreen);
+    };
   }, []);
+
+  useEffect(() => {
+    if (!isFullscreen) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      const doc = document as Document & { webkitExitFullscreen?: () => Promise<void> | void };
+      if (document.fullscreenElement) void document.exitFullscreen();
+      else void doc.webkitExitFullscreen?.();
+      setCinemaPortal(false);
+      setIsFullscreen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [isFullscreen]);
 
   useEffect(() => {
     if (!isCarousel) return;
@@ -165,14 +196,54 @@ export default function Interactive916Player({
     setMuted(nextMuted);
   }
 
+  async function toggleFullscreen() {
+    const stage = stageRef.current as
+      | (HTMLDivElement & { webkitRequestFullscreen?: () => Promise<void> | void })
+      | null;
+    if (!stage) return;
+    const doc = document as Document & {
+      webkitFullscreenElement?: Element | null;
+      webkitExitFullscreen?: () => Promise<void> | void;
+    };
+    const active = document.fullscreenElement ?? doc.webkitFullscreenElement ?? null;
+    if (isFullscreen || active) {
+      if (active) {
+        if (document.exitFullscreen) await document.exitFullscreen();
+        else await doc.webkitExitFullscreen?.();
+      }
+      setCinemaPortal(false);
+      setIsFullscreen(false);
+      return;
+    }
+    try {
+      if (stage.requestFullscreen) await stage.requestFullscreen();
+      else await stage.webkitRequestFullscreen?.();
+    } catch {
+      /* Embedded browsers often block the Fullscreen API; cinema layout still applies. */
+    }
+    const native = document.fullscreenElement === stage || doc.webkitFullscreenElement === stage;
+    setCinemaPortal(!native);
+    setIsFullscreen(true);
+  }
+
+  const mountStage = (node: React.ReactNode) =>
+    cinemaPortal && typeof document !== "undefined" ? createPortal(node, document.body) : node;
+
   return (
     <div
       ref={frameRef}
       className="relative mx-auto w-full max-w-[340px] rounded-[2.6rem] border border-white/15 bg-white/[0.055] p-2.5 shadow-[0_45px_120px_rgba(0,0,0,0.7),inset_0_1px_0_rgba(255,255,255,0.14)] backdrop-blur-xl"
     >
       <div className="absolute left-1/2 top-4 z-30 h-5 w-20 -translate-x-1/2 rounded-full border border-white/5 bg-black/95" />
-      <div className="relative aspect-[9/16] overflow-hidden rounded-[2rem] border border-black bg-zinc-950">
-        {poster && !ready && (
+      {cinemaPortal ? <div className="aspect-[9/16] rounded-[2rem] bg-black" aria-hidden /> : null}
+      {mountStage(
+      <div
+        ref={stageRef}
+        className={`player-stage relative aspect-[9/16] overflow-hidden rounded-[2rem] border border-black bg-black ${
+          isFullscreen ? "is-cinema" : ""
+        }`}
+      >
+        {poster && !ready && !isFullscreen && (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={poster.url}
@@ -188,9 +259,9 @@ export default function Interactive916Player({
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.4 }}
-            className="absolute inset-0"
+            className="player-stage-media absolute inset-0"
           >
-            {heroAsset?.kind === "video" && !isCarousel && isInViewport ? (
+            {heroAsset?.kind === "video" && !isCarousel ? (
               <video
                 ref={videoRef}
                 poster={poster?.url}
@@ -216,17 +287,14 @@ export default function Interactive916Player({
                   freezeTimers();
                   setPlaying(false);
                 }}
-                className="h-full w-full object-cover"
+                className={
+                  isFullscreen
+                    ? "h-full w-auto max-w-full object-contain"
+                    : "h-full w-full object-cover"
+                }
               >
                 <source src={heroAsset.url} type={videoMimeFromUrl(heroAsset.url)} />
               </video>
-            ) : heroAsset?.kind === "video" && !isCarousel && poster ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={poster.url}
-                alt={`${slug} preview poster`}
-                className="h-full w-full object-cover"
-              />
             ) : heroAsset?.kind === "image" || (isCarousel && stills[0]) ? (
               // eslint-disable-next-line @next/next/no-img-element
               <motion.img
@@ -248,31 +316,39 @@ export default function Interactive916Player({
           </motion.div>
         </AnimatePresence>
 
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/50 via-transparent to-black/85" />
-        <div className="pointer-events-none absolute inset-x-0 top-0 z-10 h-1/3 bg-gradient-to-b from-white/12 via-white/[0.03] to-transparent" />
-        <div className="absolute inset-x-0 top-0 z-20 flex flex-wrap gap-1.5 p-4 pt-9">
-          {(isCarousel ? ["1080×1440", "CAROUSEL", engine] : ["1080×1920", "30 FPS", engine]).map((badge) => (
-            <span
-              key={badge}
-              className="rounded-full border border-emerald-500/35 bg-zinc-950/80 px-2.5 py-1 font-mono text-[9px] uppercase tracking-wider text-emerald-300 backdrop-blur"
-            >
-              {badge}
-            </span>
-          ))}
-        </div>
+        {!isFullscreen && (
+          <>
+            <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/50 via-transparent to-black/85" />
+            <div className="pointer-events-none absolute inset-x-0 top-0 z-10 h-1/3 bg-gradient-to-b from-white/12 via-white/[0.03] to-transparent" />
+          </>
+        )}
+        {!isFullscreen && (
+          <div className="absolute inset-x-0 top-0 z-20 flex flex-wrap gap-1.5 p-4 pt-9">
+            {(isCarousel ? ["1080×1440", "CAROUSEL", engine] : ["1080×1920", "30 FPS", engine]).map((badge) => (
+              <span
+                key={badge}
+                className="rounded-full border border-emerald-500/35 bg-zinc-950/80 px-2.5 py-1 font-mono text-[9px] uppercase tracking-wider text-emerald-300 backdrop-blur"
+              >
+                {badge}
+              </span>
+            ))}
+          </div>
+        )}
 
         <div className="absolute inset-x-0 bottom-0 z-20 p-4">
-          <motion.div
-            key={activeNode.id}
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mb-3"
-          >
-            <p className="font-mono text-[9px] uppercase tracking-[0.16em] text-emerald-400">
-              {activeNode.category} / {activeNode.id}
-            </p>
-            <p className="mt-1 text-sm font-medium text-white">{activeNode.title}</p>
-          </motion.div>
+          {!isFullscreen && (
+            <motion.div
+              key={activeNode.id}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-3"
+            >
+              <p className="font-mono text-[9px] uppercase tracking-[0.16em] text-emerald-400">
+                {activeNode.category} / {activeNode.id}
+              </p>
+              <p className="mt-1 text-sm font-medium text-white">{activeNode.title}</p>
+            </motion.div>
+          )}
 
           {heroAsset?.kind === "video" && !isCarousel && (
             <div className="rounded-xl border border-white/10 bg-zinc-950/75 p-2.5 backdrop-blur-md">
@@ -306,10 +382,10 @@ export default function Interactive916Player({
                   {formatTime(currentTime)} / {formatTime(duration)}
                 </span>
                 <ControlButton
-                  label="Enter fullscreen"
-                  onClick={() => frameRef.current?.requestFullscreen?.()}
+                  label={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
+                  onClick={() => void toggleFullscreen()}
                 >
-                  ⛶
+                  {isFullscreen ? "✕" : "⛶"}
                 </ControlButton>
               </div>
             </div>
@@ -330,16 +406,17 @@ export default function Interactive916Player({
                   {String(stills.length).padStart(2, "0")}
                 </span>
                 <ControlButton
-                  label="Enter fullscreen"
-                  onClick={() => frameRef.current?.requestFullscreen?.()}
+                  label={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
+                  onClick={() => void toggleFullscreen()}
                 >
-                  ⛶
+                  {isFullscreen ? "✕" : "⛶"}
                 </ControlButton>
               </div>
             </div>
           )}
         </div>
       </div>
+      )}
 
       <div className="px-2 pb-1 pt-3">
         <div className="flex items-center justify-between gap-2">
