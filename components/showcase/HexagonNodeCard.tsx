@@ -100,6 +100,21 @@ export default function HexagonNodeCard({
                 {node.engineeredOutcome}
               </p>
             </DetailBlock>
+            {node.cardImage ? (
+              <div className="overflow-hidden border border-emerald-500/20 bg-black/40">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={node.cardImage}
+                  alt={`${node.title} storefront`}
+                  className="h-52 w-full object-cover object-[center_32%] sm:h-64"
+                />
+                {node.storefrontUrl ? (
+                  <p className="truncate border-t border-emerald-500/15 px-3 py-2 font-mono text-[10px] text-emerald-200/80">
+                    {node.storefrontUrl.replace(/^https?:\/\//, "")}
+                  </p>
+                ) : null}
+              </div>
+            ) : null}
           </div>
 
           <div className="mt-4 grid gap-3 border-t border-zinc-800 pt-4 font-mono text-xs sm:grid-cols-2">

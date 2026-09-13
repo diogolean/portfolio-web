@@ -152,11 +152,11 @@ const PROJECT_TECH_STACKS: Record<string, readonly string[]> = {
     "SEO Metadata Graph",
   ],
   anna_protocol: [
+    "HeyGen Avatar",
+    "ManyChat Funnel",
     "Agent Orchestration",
-    "GraphRAG / RAG",
-    "MCP Protocol",
     "Persona DNA Router",
-    "VisualArchitect",
+    "Owned Product Storefront",
   ],
   master_mei: [
     "Agent Orchestration",
@@ -190,9 +190,7 @@ const B2_PUBLIC_BASE = "https://MediaupscaleStorage.s3.us-east-005.backblazeb2.c
 /**
  * Primary hero media mode. Carousel/image projects must never resolve a video URL.
  */
-export const PROJECT_MEDIA_KIND: Record<string, ProjectMediaKind> = {
-  anna_protocol: "carousel",
-};
+export const PROJECT_MEDIA_KIND: Record<string, ProjectMediaKind> = {};
 
 /**
  * Home hex / thumbnail covers. Independent of the internal project gallery.
@@ -210,8 +208,15 @@ export const PROJECT_COVER_IMAGES: Record<string, string> = {
 export const PROJECT_CAROUSEL_IMAGES: Record<string, readonly string[]> = {
   anna_protocol: [
     "/images/projects/annas_garden_portrait_clean.webp",
+    "/images/projects/anna_rosemary_scalp_and_memory_tonic.webp",
+    "/images/projects/anna_magnesium_rich_leafy_91dbd3.webp",
+    "/images/projects/anna_celtic_sea_salt_mineral_3de522.webp",
+    "/images/projects/anna_morning_sunlight_cortisol_rhythm.webp",
+    "/images/projects/anna_copper_water_vessel_tradition.webp",
+    "/images/projects/anna_turmeric_golden_milk_inflammation.webp",
     "/images/projects/annas_garden_herbs_detail_1.webp",
     "/images/projects/annas_garden_herbs_detail_2.webp",
+    "/images/projects/anna_protocol_storefront.webp",
   ],
 };
 
@@ -219,8 +224,7 @@ export const PROJECT_CAROUSEL_IMAGES: Record<string, readonly string[]> = {
  * Verified live Backblaze objects in MediaupscaleStorage.
  * Keys are canonical project slugs. A string is the hero reel; an array is
  * newest-first gallery (hero is [0]). HTTP URLs win over local fallbacks in
- * resolveHeroMedia / listPublicVideoUrls. anna_protocol is omitted because
- * it is an image-carousel channel with no source .mp4.
+ * resolveHeroMedia / listPublicVideoUrls.
  */
 type ProjectB2VideoEntry = string | readonly string[];
 
@@ -228,6 +232,7 @@ export const PROJECT_B2_VIDEOS: Record<string, ProjectB2VideoEntry> = {
   ancient_knowledge: `${B2_PUBLIC_BASE}/reel_this_geode_hides_a_secret_that_d_v01.mp4`,
   master_mei: `${B2_PUBLIC_BASE}/reel_your_mind_s_true_owner_isn_t_you_v30.mp4`,
   aiwake: `${B2_PUBLIC_BASE}/aiwake_debate_20260902_074022_cc7f88.mp4`,
+  anna_protocol: `${B2_PUBLIC_BASE}/anna_architect_of_vitality_90s_heygen.mp4`,
   wonder_feed: [
     `${B2_PUBLIC_BASE}/lofi_reel_grief_learning_to_carry_it_20260912_140612_v01.mp4`,
     `${B2_PUBLIC_BASE}/lofi_reel_distance_silence_that_speaks_20260912_135217_v01.mp4`,
@@ -295,6 +300,7 @@ export function listProjectB2Videos(): Record<string, string[]> {
     ancient_knowledge: getProjectB2Videos("ancient_knowledge"),
     master_mei: getProjectB2Videos("master_mei"),
     annas_garden: getProjectB2Videos("annas_garden"),
+    anna_protocol: getProjectB2Videos("anna_protocol"),
     aiwake: getProjectB2Videos("aiwake"),
     wonder_feed: getProjectB2Videos("wonder_feed"),
     momma_circle: getProjectB2Videos("momma_circle"),
@@ -306,7 +312,7 @@ const HOME_TILE_TAGS: Record<string, readonly string[]> = {
   aiwake: ["LLM", "MCP"],
   wonder_feed: ["AVATAR", "RAG"],
   endless_summer_paradise: ["MCP", "SIMULATION"],
-  anna_protocol: ["AVATAR", "LLM"],
+  anna_protocol: ["HEYGEN", "FUNNEL"],
   ancient_knowledge: ["GraphRAG", "LLM"],
   momma_circle: ["WORKFLOW", "MCP"],
 };

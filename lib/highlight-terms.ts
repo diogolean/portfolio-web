@@ -30,6 +30,8 @@ const PRIMARY_PATTERN_MATCHERS: Array<{ test: RegExp; label: string }> = [
   { test: /graphrag|\brag\b|memory recall|content-library|global library/i, label: "GraphRAG / RAG" },
   { test: /state machine|router|guard decorator|strategy pattern/i, label: "State Machine Router" },
   { test: /dspy|prompt assembl|assemble_v2|optimization/i, label: "DSPy Optimization" },
+  { test: /heygen/i, label: "HeyGen Avatar" },
+  { test: /manychat/i, label: "ManyChat Funnel" },
 ];
 
 export const PROJECT_HIGHLIGHTS: Record<string, readonly string[]> = {
@@ -55,11 +57,11 @@ export const PROJECT_HIGHLIGHTS: Record<string, readonly string[]> = {
     "SEO Metadata Graph",
   ],
   anna_protocol: [
+    "HeyGen Avatar",
+    "ManyChat Funnel",
     "Agent Orchestration",
-    "GraphRAG / RAG",
-    "MCP Protocol",
     "Persona DNA Router",
-    "VisualArchitect",
+    "Owned Product Storefront",
   ],
   master_mei: [
     "Agent Orchestration",

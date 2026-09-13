@@ -2,8 +2,8 @@
   "slug": "anna_protocol",
   "title": "Anna's Garden",
   "codename": "Anna Protocol",
-  "status": "registry",
-  "summary": "Anna Protocol channel in the unified factory. Registry stub until architecture export lands.",
+  "status": "active",
+  "summary": "HeyGen avatar video plus a ManyChat keyword funnel that sells Anna’s proprietary holistic protocol through holisticprotocolslab.com.",
   "engine_path": "channels_config/anna_protocol",
-  "tags": ["content_factory"]
+  "tags": ["HeyGen", "ManyChat", "IMAGE_AVATAR", "sales_funnel"]
 }

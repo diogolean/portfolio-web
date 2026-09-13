@@ -21,6 +21,7 @@ export interface ArchitectureNode {
   contract: string;
   payload: Record<string, unknown>;
   latency: string;
+  cardImage?: string;
 }
 
 export interface EngineeringShowcase {
@@ -49,7 +50,8 @@ function node(
   technologies: string[],
   contract: string,
   payload: Record<string, unknown>,
-  latency: string
+  latency: string,
+  cardImage?: string
 ): ArchitectureNode {
   return {
     id,
@@ -61,6 +63,7 @@ function node(
     contract,
     payload,
     latency,
+    ...(cardImage ? { cardImage } : {}),
   };
 }
 
@@ -173,11 +176,17 @@ function espBlueprint(settings: FactoryRuntimeSpec): ProjectBlueprint {
 
 const PROJECT_BLUEPRINTS: Record<string, ProjectBlueprint> = {
   anna_protocol: {
-    stack: ["Gemini VisualArchitect", "IMAGE_AVATAR", "Persona DNA", "Pinterest", "3:4 render"],
+    stack: [
+      "HeyGen Avatar",
+      "ManyChat Funnel",
+      "Agent Orchestration",
+      "Persona DNA Router",
+      "Owned Product Storefront",
+    ],
     challenge:
-      "Health captions must remain clinically precise and persona-safe while avoiding metaphor leakage into the generated botanical imagery.",
+      "A 72-year-old holistic authority has to turn social attention into owned-product revenue without a sales team — captions, avatar video, and keyword chat must stay clinically precise and commercially closed.",
     outcome:
-      "A static image-avatar and Pinterest funnel pipeline grounded in Anna’s 72-year-old holistic authority persona.",
+      "A HeyGen-produced Anna avatar reel plus a ManyChat keyword funnel that sells a proprietary protocol through holisticprotocolslab.com.",
     nodes: [
       node(
         "topic-selector",
@@ -210,24 +219,36 @@ const PROJECT_BLUEPRINTS: Record<string, ProjectBlueprint> = {
         "Image API-bound"
       ),
       node(
-        "atmosphere-fallback",
-        "Botanical Atmosphere Fallback",
+        "heygen-avatar",
+        "HeyGen Avatar Video Production",
         "render",
-        "Switches to botanical macro imagery when avatar mode is disabled, preserving the same channel palette and subject constraints.",
-        ["Botanical macro", "Channel palette", "Avatar OFF"],
-        "PersonaCaption → AtmosphereImage",
-        { condition: "avatar === false", text_overlay_default: false },
-        "Image API-bound"
+        "Renders the on-camera Anna host in HeyGen — The Architect of Vitality 90-second master — so the same persona DNA ships as a talking avatar instead of a still-only pin.",
+        ["HeyGen Avatar", "90s master", "Captioned 1080p"],
+        "ApprovedPersonaScript → HeyGenAvatarReel",
+        {
+          engine: "heygen",
+          title: "The Architect of Vitality",
+          duration_s: 90,
+          deliverable: "1080p_caption",
+        },
+        "Avatar render-bound"
       ),
       node(
-        "pinterest-funnel",
-        "Pinterest Funnel Integration",
+        "owned-product-funnel",
+        "Owned-Product Sales Funnel",
         "delivery",
-        "Packages the final image and CTA variants for the configured Pinterest board and holistic-protocol destination.",
-        ["Pinterest board override", "CTA variants", "Target URL"],
-        "AvatarImage | AtmosphereImage → PinterestPin",
-        { target: "blueprint.holisticprotocolslab.com", publisher: "pinterest" },
-        "Publisher-bound"
+        "Closes the loop on a proprietary protocol: social CTAs hand off to ManyChat keyword automation, then to the owned storefront at holisticprotocolslab.com — no affiliate middleman, no manual closer.",
+        ["ManyChat Funnel", "Keyword triggers", "Owned Product Storefront"],
+        "QualifiedLead → PaidProtocolOrder",
+        {
+          product: "proprietary_holistic_protocol",
+          automation: "manychat_keyword_flows",
+          keywords: ["PROTOCOL", "VITALITY", "ANNA", "RESTORE"],
+          storefront: "https://holisticprotocolslab.com/",
+          checkout: "owned_product",
+        },
+        "Conversation + checkout",
+        "/images/projects/anna_protocol_storefront.webp"
       ),
     ],
   },

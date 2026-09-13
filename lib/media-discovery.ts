@@ -129,7 +129,10 @@ export async function discoverProjectMediaAssets(
         source: "external",
       });
     }
-    return assets.filter((asset) => asset.kind === "video").slice(0, 6);
+    return [
+      ...assets.filter((asset) => asset.kind === "video").slice(0, 6),
+      ...assets.filter((asset) => asset.kind === "image").slice(0, 18),
+    ];
   }
 
   if (!imageOnly) {

@@ -71,6 +71,21 @@ export default function NodeDeepDiveModal({ node, onClose }: NodeDeepDiveModalPr
               <h2 id="node-deep-dive-title" className="text-3xl font-semibold text-white">
                 {node.title}
               </h2>
+              {node.cardImage ? (
+                <div className="mt-5 overflow-hidden border border-emerald-500/25">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={node.cardImage}
+                    alt={`${node.title} storefront`}
+                    className="max-h-[28rem] w-full object-cover object-[center_28%]"
+                  />
+                  {node.storefrontUrl ? (
+                    <p className="border-t border-emerald-500/15 px-4 py-2 font-mono text-xs text-emerald-200/80">
+                      {node.storefrontUrl}
+                    </p>
+                  ) : null}
+                </div>
+              ) : null}
               <div className="mt-5 grid gap-3 lg:grid-cols-3">
                 <Panel title={translate("architecture_stack")}>
                   <p className="font-mono text-xs leading-6 text-emerald-100/75">

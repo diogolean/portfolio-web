@@ -51,7 +51,13 @@ function mosaicAssets(node: ReturnType<typeof parseProjectShowcase>["nodes"][num
     },
   ];
 
-  if (node.kind === "media" || node.kind === "render") {
+  if (node.cardImage) {
+    assets.unshift({
+      type: "image",
+      label: "Storefront",
+      src: node.cardImage,
+    });
+  } else if (node.kind === "media" || node.kind === "render") {
     assets.push({
       type: "audio",
       label: "Signal envelope",
@@ -84,6 +90,9 @@ function toPipelineNode(
     mosaicAssets: mosaicAssets(node),
     payloadSample: node.payload,
     latency: node.latency,
+    cardImage: node.cardImage,
+    storefrontUrl:
+      typeof node.payload.storefront === "string" ? node.payload.storefront : undefined,
   };
 }
 

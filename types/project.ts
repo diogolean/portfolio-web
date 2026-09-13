@@ -25,6 +25,8 @@ export interface PipelineNode {
   mosaicAssets?: MosaicAsset[];
   payloadSample?: Record<string, unknown>;
   latency?: string;
+  cardImage?: string;
+  storefrontUrl?: string;
 }
 
 export interface ProjectPipeline {
