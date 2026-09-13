@@ -75,6 +75,14 @@ export default function Interactive916Player({
   }, []);
 
   useEffect(() => {
+    setFailedAssetUrls(new Set());
+    setAssetIndex(0);
+    setAssetFilter(isCarousel ? "image" : "all");
+    setReady(false);
+    setCurrentTime(0);
+  }, [slug, isCarousel]);
+
+  useEffect(() => {
     setReady(false);
     setCurrentTime(0);
   }, [heroAsset?.url]);
@@ -354,7 +362,7 @@ export default function Interactive916Player({
                 onClick={() => setAssetIndex(index)}
                 aria-label={`Show ${asset.filename}`}
                 className={`h-1 flex-1 transition ${
-                  index === assetIndex % filteredAssets.length ? "bg-emerald-400" : "bg-zinc-700"
+                  index === assetIndex % Math.max(filteredAssets.length, 1) ? "bg-emerald-400" : "bg-zinc-700"
                 }`}
               />
             ))}

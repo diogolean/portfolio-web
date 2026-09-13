@@ -230,7 +230,14 @@ type ProjectB2VideoEntry = string | readonly string[];
 
 export const PROJECT_B2_VIDEOS: Record<string, ProjectB2VideoEntry> = {
   ancient_knowledge: `${B2_PUBLIC_BASE}/reel_this_geode_hides_a_secret_that_d_v01.mp4`,
-  master_mei: `${B2_PUBLIC_BASE}/reel_your_mind_s_true_owner_isn_t_you_v30.mp4`,
+  master_mei: [
+    `${B2_PUBLIC_BASE}/reel_are_you_still_chained__watching__v01.mp4`,
+    `${B2_PUBLIC_BASE}/reel_does_fleeting_pleasure_secretly__v01.mp4`,
+    `${B2_PUBLIC_BASE}/reel_who_holds_the_keys_to_your_self__v01.mp4`,
+    `${B2_PUBLIC_BASE}/reel_will_you_command_your_ascent__or_v01.mp4`,
+    `${B2_PUBLIC_BASE}/reel_who_controls_the_map_of_your_min_v04.mp4`,
+    `${B2_PUBLIC_BASE}/reel_is_your_inner_sovereign_exiled_b_v05.mp4`,
+  ],
   aiwake: `${B2_PUBLIC_BASE}/aiwake_debate_20260902_074022_cc7f88.mp4`,
   anna_protocol: `${B2_PUBLIC_BASE}/anna_architect_of_vitality_90s_heygen.mp4`,
   wonder_feed: [
@@ -249,7 +256,14 @@ export const PROJECT_B2_VIDEOS: Record<string, ProjectB2VideoEntry> = {
     `${B2_PUBLIC_BASE}/lofi_reel_presence_phones_down_eye_contact_20260912_054415_v01.mp4`,
     `${B2_PUBLIC_BASE}/lofi_reel_sleep_routines_as_safety_20260912_052741_v01.mp4`,
   ],
-  endless_summer_paradise: `${B2_PUBLIC_BASE}/The_Terminus_1778730630_V4_LIVE_ULTIMATE_MASTER.mp4`,
+  endless_summer_paradise: [
+    `${B2_PUBLIC_BASE}/Everbloom_Vista_Springs_1777349707_V3_LIVE_ULTIMATE_MASTER.mp4`,
+    `${B2_PUBLIC_BASE}/Candid_Mirage_Social_1777412520_V4_LIVE_ULTIMATE_MASTER.mp4`,
+    `${B2_PUBLIC_BASE}/Evergleam_Aqua_Mirage_1777612128_V4_LIVE_ULTIMATE_MASTER.mp4`,
+    `${B2_PUBLIC_BASE}/Paradise_Dream_Garden_1777825618_V4_LIVE_ULTIMATE_MASTER.mp4`,
+    `${B2_PUBLIC_BASE}/Candid_Chroma_Mirage_1777831839_V4_LIVE_ULTIMATE_MASTER.mp4`,
+    `${B2_PUBLIC_BASE}/Paradise_Dream_Garden_1778008697_V4_LIVE_ULTIMATE_MASTER.mp4`,
+  ],
 };
 
 export function canonicalProjectSlug(slug: string): string {

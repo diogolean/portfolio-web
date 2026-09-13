@@ -1,8 +1,9 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
+import Link from "next/link";
 import { useState, type MouseEvent } from "react";
-import { openOmniCore } from "@/components/omni/OmniCoreModal";
+import { OMNI_ENGINE_PATH } from "@/lib/omni";
 
 const NAV_ITEMS = [
   { label: "Profile", id: "profile" },
@@ -47,20 +48,18 @@ export default function Header() {
         transition={{ layout: { duration: 0.5, ease: [0.16, 1, 0.3, 1] } }}
         className="pointer-events-auto relative z-10 flex max-w-[calc(100vw-2rem)] items-center gap-2 overflow-hidden rounded-full border border-neutral-800/80 bg-neutral-950/80 px-4 py-1.5 backdrop-blur-md will-change-[width]"
       >
-        <button
-          type="button"
+        <Link
+          href={OMNI_ENGINE_PATH}
+          scroll={false}
           aria-label="Open Omni Engine core architecture"
           aria-haspopup="dialog"
-          onClick={() => {
-            setExpanded(true);
-            openOmniCore();
-          }}
+          onClick={() => setExpanded(true)}
           className="glow-pulse-trigger pointer-events-auto relative z-10 flex shrink-0 cursor-pointer items-center outline-none"
         >
           <span className="whitespace-nowrap font-mono text-xs tracking-widest text-emerald-400 [text-shadow:0_0_6px_rgba(52,211,153,0.35)]">
             OMNI-ENGINE
           </span>
-        </button>
+        </Link>
 
         <AnimatePresence initial={false}>
           {expanded && (

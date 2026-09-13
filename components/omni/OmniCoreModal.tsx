@@ -17,6 +17,7 @@ import {
   type MouseEvent,
   type RefObject,
 } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import { createPortal } from "react-dom";
 import Image from "next/image";
 import proofImage from "@/public/proof/proof.webp";
@@ -24,8 +25,9 @@ import CloseButton from "@/components/showcase/CloseButton";
 import CircuitStroke from "@/components/showcase/CircuitStroke";
 import SpineJunction from "@/components/showcase/SpineJunction";
 import { SPINE_SPRING } from "@/components/showcase/TimelineSpine";
+import { OMNI_ENGINE_PATH, OPEN_OMNI_CORE_EVENT } from "@/lib/omni";
 
-export const OPEN_OMNI_CORE_EVENT = "omni-engine:open-core";
+export { OMNI_ENGINE_PATH, OPEN_OMNI_CORE_EVENT };
 
 const STATS = [
   { value: "+6.2M", label: "Total audience / followers" },
@@ -161,14 +163,24 @@ export function openOmniCore() {
 }
 
 export default function OmniCoreModal() {
-  const [open, setOpen] = useState(false);
+  const router = useRouter();
+  const pathname = usePathname();
+  const open = pathname === OMNI_ENGINE_PATH;
+  const landedDirectly = useRef(pathname === OMNI_ENGINE_PATH);
   const [mounted, setMounted] = useState(false);
   const [activeStepIndex, setActiveStepIndex] = useState(0);
   const cardRefs = useRef<(HTMLElement | null)[]>([]);
   const scrollRootRef = useRef<HTMLDivElement>(null);
   const axisRef = useRef<HTMLDivElement>(null);
 
-  const close = useCallback(() => setOpen(false), []);
+  const close = useCallback(() => {
+    if (pathname !== OMNI_ENGINE_PATH) return;
+    if (landedDirectly.current) {
+      router.replace("/", { scroll: false });
+      return;
+    }
+    router.back();
+  }, [pathname, router]);
   const scrollToStep = useCallback((index: number) => {
     setActiveStepIndex(index);
     cardRefs.current[index]?.scrollIntoView({
@@ -180,12 +192,13 @@ export default function OmniCoreModal() {
   useEffect(() => {
     setMounted(true);
     const show = () => {
-      setActiveStepIndex(0);
-      setOpen(true);
+      if (pathname !== OMNI_ENGINE_PATH) {
+        router.push(OMNI_ENGINE_PATH, { scroll: false });
+      }
     };
     window.addEventListener(OPEN_OMNI_CORE_EVENT, show);
     return () => window.removeEventListener(OPEN_OMNI_CORE_EVENT, show);
-  }, []);
+  }, [pathname, router]);
 
   useLayoutEffect(() => {
     if (!open) return;

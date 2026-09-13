@@ -48,6 +48,7 @@ export default function ScrollStoryline({ slug, nodes, media, mediaKind }: Scrol
             <div className="relative flex w-full flex-col items-center overflow-visible pt-2">
               <MicroMosaicCloud node={activeNode}>
                 <Interactive916Player
+                  key={slug}
                   assets={media}
                   slug={slug}
                   mediaKind={mediaKind}

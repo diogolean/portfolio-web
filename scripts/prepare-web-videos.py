@@ -1,4 +1,4 @@
-"""Transcode the newest Wonder Feed / Momma Circle clips for web and upload to B2."""
+"""Transcode curated project clips for web and upload to B2."""
 
 from __future__ import annotations
 
@@ -13,39 +13,54 @@ OMNI = Path(r"C:\dev\omni-engine")
 DRIVE = Path(
     r"G:\My Drive\Z sosFiles\Z_act\@ NETWORK\@MEDIAUPSCALE_FACTORY_DYNAMIC_CONTENT\Unified Multi-Page Factory\outputs"
 )
+ESP_PROD = Path(
+    r"G:\My Drive\Z sosFiles\Z_act\@ NETWORK\@ MEDIAUPSCALE_FACTORY\Endless_Summers_Paradise - Production"
+)
 FFMPEG_CANDIDATES = [
     OMNI / ".venv" / "Lib" / "site-packages" / "imageio_ffmpeg" / "binaries" / "ffmpeg-win-x86_64-v7.1.exe",
     Path.home() / "AppData" / "Local" / "Programs" / "Stremio" / "ffmpeg.exe",
 ]
 POSTER_DIR = Path(__file__).resolve().parents[1] / "public" / "videos" / "posters"
 
+print("boot prepare-web-videos", flush=True)
 sys.path.insert(0, str(OMNI))
 from dotenv import load_dotenv
 
 load_dotenv(OMNI / ".env", override=False)
+print("env loaded", flush=True)
 
 from agents.media.b2_client import B2VideoUploader  # noqa: E402
+print("b2 client ready", flush=True)
 
 B2_PUBLIC_BASE = "https://MediaupscaleStorage.s3.us-east-005.backblazeb2.com"
 
-# Newest six complete shipped clips per channel (clips/ only — skip Reproved / @Experiments).
+# ESP: first six YouTube-scheduled masters (publishAt order from esp_schedule_result.json).
+# Master Mei: six newest complete clips/ files.
 CLIPS: dict[str, list[Path]] = {
-    "wonder_feed": [
-        DRIVE / "wonder_feed" / "clips" / "lofi_reel_grief_learning_to_carry_it_20260912_140612_v01.mp4",
-        DRIVE / "wonder_feed" / "clips" / "lofi_reel_distance_silence_that_speaks_20260912_135217_v01.mp4",
-        DRIVE / "wonder_feed" / "clips" / "lofi_reel_grief_learning_to_carry_it_20260912_055532_v01.mp4",
-        DRIVE / "wonder_feed" / "clips" / "lofi_reel_distance_silence_that_speaks_20260912_053648_v01.mp4",
-        DRIVE / "wonder_feed" / "clips" / "lofi_reel_grief_learning_to_carry_it_20260912_051957_v01.mp4",
-        DRIVE / "wonder_feed" / "clips" / "lofi_reel_distance_silence_that_speaks_20260912_050447_v01.mp4",
+    "endless_summer_paradise": [
+        ESP_PROD / "Everbloom_Vista_Springs_1777349707_V3_LIVE" / "Everbloom_Vista_Springs_1777349707_V3_LIVE_ULTIMATE_MASTER.mp4",
+        ESP_PROD / "Candid_Mirage_Social_1777412520_V4_LIVE" / "Candid_Mirage_Social_1777412520_V4_LIVE_ULTIMATE_MASTER.mp4",
+        ESP_PROD / "Evergleam_Aqua_Mirage_1777612128_V4_LIVE" / "Evergleam_Aqua_Mirage_1777612128_V4_LIVE_ULTIMATE_MASTER.mp4",
+        ESP_PROD / "Paradise_Dream_Garden_1777825618_V4_LIVE" / "Paradise_Dream_Garden_1777825618_V4_LIVE_ULTIMATE_MASTER.mp4",
+        ESP_PROD / "Candid_Chroma_Mirage_1777831839_V4_LIVE" / "Candid_Chroma_Mirage_1777831839_V4_LIVE_ULTIMATE_MASTER.mp4",
+        ESP_PROD / "Paradise_Dream_Garden_1778008697_V4_LIVE" / "Paradise_Dream_Garden_1778008697_V4_LIVE_ULTIMATE_MASTER.mp4",
     ],
-    "momma_circle": [
-        DRIVE / "momma_circle" / "clips" / "lofi_reel_presence_phones_down_eye_contact_20260912_165636_v01.mp4",
-        DRIVE / "momma_circle" / "clips" / "lofi_reel_sleep_routines_as_safety_20260912_163635_v01.mp4",
-        DRIVE / "momma_circle" / "clips" / "lofi_reel_self_compassion_good_enough_mother_20260912_141507_v01.mp4",
-        DRIVE / "momma_circle" / "clips" / "lofi_reel_self_compassion_good_enough_mother_20260912_060212_v01.mp4",
-        DRIVE / "momma_circle" / "clips" / "lofi_reel_presence_phones_down_eye_contact_20260912_054415_v01.mp4",
-        DRIVE / "momma_circle" / "clips" / "lofi_reel_sleep_routines_as_safety_20260912_052741_v01.mp4",
+    "master_mei": [
+        DRIVE / "master_mei" / "clips" / "reel_are_you_still_chained__watching__v01.mp4",
+        DRIVE / "master_mei" / "clips" / "reel_does_fleeting_pleasure_secretly__v01.mp4",
+        DRIVE / "master_mei" / "clips" / "reel_who_holds_the_keys_to_your_self__v01.mp4",
+        DRIVE / "master_mei" / "clips" / "reel_will_you_command_your_ascent__or_v01.mp4",
+        DRIVE / "master_mei" / "clips" / "reel_who_controls_the_map_of_your_min_v04.mp4",
+        DRIVE / "master_mei" / "clips" / "reel_is_your_inner_sovereign_exiled_b_v05.mp4",
     ],
+}
+ORIENTATION: dict[str, str] = {
+    "endless_summer_paradise": "landscape",
+    "master_mei": "portrait",
+}
+SCALE = {
+    "portrait": "scale=1080:1920:force_original_aspect_ratio=decrease,pad=1080:1920:(ow-iw)/2:(oh-ih)/2,format=yuv420p",
+    "landscape": "scale=1920:1080:force_original_aspect_ratio=decrease,pad=1920:1080:(ow-iw)/2:(oh-ih)/2,format=yuv420p",
 }
 
 
@@ -65,7 +80,7 @@ def run(cmd: list[str]) -> None:
         raise RuntimeError(f"command failed ({proc.returncode}): {cmd[0]}\n{proc.stderr[-1200:]}")
 
 
-def encode_web_mp4(ffmpeg: str, src: Path, dest: Path) -> None:
+def encode_web_mp4(ffmpeg: str, src: Path, dest: Path, orientation: str) -> None:
     dest.parent.mkdir(parents=True, exist_ok=True)
     run(
         [
@@ -74,11 +89,11 @@ def encode_web_mp4(ffmpeg: str, src: Path, dest: Path) -> None:
             "-i",
             str(src),
             "-vf",
-            "scale=1080:1920:force_original_aspect_ratio=decrease,pad=1080:1920:(ow-iw)/2:(oh-ih)/2,format=yuv420p",
+            SCALE[orientation],
             "-c:v",
             "libx264",
             "-preset",
-            "medium",
+            "veryfast",
             "-crf",
             "26",
             "-profile:v",
@@ -121,22 +136,28 @@ def verify(url: str) -> tuple[int | str, str]:
     try:
         request = Request(url, method="GET")
         request.add_header("Range", "bytes=0-16")
-        with urlopen(request, timeout=20) as response:
+        with urlopen(request, timeout=12) as response:
             return response.status, response.headers.get("Content-Type", "")
     except Exception as exc:
         return type(exc).__name__, str(exc)[:140]
 
 
 def main() -> int:
-    ffmpeg = resolve_ffmpeg()
-    print(f"ffmpeg {ffmpeg}")
+    selected = set(sys.argv[1:])
+    clips = {slug: paths for slug, paths in CLIPS.items() if not selected or slug in selected}
+    if not clips:
+        print("no matching slugs")
+        return 1
 
-    missing = [
-        f"{slug}: {path}"
-        for slug, paths in CLIPS.items()
-        for path in paths
-        if not path.is_file()
-    ]
+    ffmpeg = resolve_ffmpeg()
+    print(f"ffmpeg {ffmpeg}", flush=True)
+
+    missing: list[str] = []
+    for slug, paths in clips.items():
+        for path in paths:
+            print(f"check  {slug} {path.name}", flush=True)
+            if not path.is_file():
+                missing.append(f"{slug}: {path}")
     if missing:
         for item in missing:
             print(f"MISSING {item}")
@@ -147,9 +168,10 @@ def main() -> int:
 
     with tempfile.TemporaryDirectory(prefix="portfolio-web-videos-") as tmp:
         tmp_root = Path(tmp)
-        for slug, paths in CLIPS.items():
+        for slug, paths in clips.items():
             extract_poster(ffmpeg, paths[0], POSTER_DIR / f"{slug}.webp")
             print(f"poster {POSTER_DIR / f'{slug}.webp'}")
+            orientation = ORIENTATION.get(slug, "portrait")
             for src in paths:
                 url = f"{B2_PUBLIC_BASE}/{src.name}"
                 src_mb = src.stat().st_size / (1024 * 1024)
@@ -159,8 +181,8 @@ def main() -> int:
                     results.append((slug, src, url, src_mb, src_mb))
                     continue
                 dest = tmp_root / src.name
-                print(f"\nencode {slug} <- {src.name} ({src_mb:.1f} MB)")
-                encode_web_mp4(ffmpeg, src, dest)
+                print(f"\nencode {slug} {orientation} <- {src.name} ({src_mb:.1f} MB)")
+                encode_web_mp4(ffmpeg, src, dest, orientation)
                 web_mb = dest.stat().st_size / (1024 * 1024)
                 print(f"web    {dest.name} ({web_mb:.1f} MB)")
                 url = uploader.upload(dest, content_type="video/mp4")
