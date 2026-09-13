@@ -324,11 +324,11 @@ export function listProjectB2Videos(): Record<string, string[]> {
 }
 
 const HOME_TILE_TAGS: Record<string, readonly string[]> = {
-  master_mei: ["AGENT", "LLM"],
+  master_mei: ["QA AGENT", "FLOW"],
   aiwake: ["LLM", "MCP"],
-  wonder_feed: ["AVATAR", "RAG"],
+  wonder_feed: ["RAG", "WORKFLOW"],
   endless_summer_paradise: ["MCP", "SIMULATION"],
-  anna_protocol: ["HEYGEN", "FUNNEL"],
+  anna_protocol: ["AVATAR", "FUNNEL"],
   ancient_knowledge: ["GraphRAG", "LLM"],
   momma_circle: ["WORKFLOW", "MCP"],
 };
@@ -374,9 +374,7 @@ export async function getAllProjectsMeta(): Promise<ProjectMeta[]> {
         ...meta,
         status: "active" as const,
         tags: [...(HOME_TILE_TAGS[meta.slug] ?? meta.tags)],
-        ...(HOME_TILE_CODENAMES[meta.slug]
-          ? { codename: HOME_TILE_CODENAMES[meta.slug] }
-          : {}),
+        codename: HOME_TILE_CODENAMES[meta.slug],
         ...(cover ? { cover_image: cover } : {}),
       };
     })
