@@ -1,13 +1,13 @@
 {
   "name": "Diogo Lean Veiga",
-  "role": "AI Automation Engineer & Systems Architect",
+  "role": "AI Systems & Product Architect",
   "tagline": "Building autonomous video pipelines, agentic orchestration graphs, and multi-profile growth engines.",
   "summary": "Specialist in end-to-end generative AI automation, multi-agent orchestrations, full-stack web architectures, and high-throughput content engines.",
   "location": "Rio de Janeiro, Brazil (Worldwide Remote)",
   "contact": {
     "email": "diogolean@gmail.com",
     "portfolio": "https://www.actdesign.org",
-    "github": "https://github.com/MediaUpScale",
+    "github": "https://github.com/diogolean",
     "linkedin": "https://linkedin.com/in/diogo-lean-veiga"
   },
   "metrics": [
@@ -24,7 +24,7 @@
       "value": "5M+"
     },
     {
-      "label": "Ad Revenue Generated",
+      "label": "Platform Monetization ($27k Peak/Mo)",
       "value": "$100K+"
     }
   ],
@@ -42,7 +42,7 @@
     {
       "id": "03",
       "category": "Generative Media Engines",
-      "skills": ["Kling AI", "ElevenLabs", "HeyGen", "FLUX.1 / SD", "ComfyUI Pipeline Automation"]
+      "skills": ["Edge-TTS Audio Pipelines", "ElevenLabs", "Agnostic Model Gateways", "FLUX.1 / SD", "ComfyUI Pipeline Automation"]
     },
     {
       "id": "04",
@@ -52,7 +52,7 @@
     {
       "id": "05",
       "category": "Infrastructure & Operations",
-      "skills": ["Proxy Mesh Routing", "Anti-detect Browsers (Dolphin/GoLogin)", "Automated Workflows", "Git / GitHub Versioning"]
+      "skills": ["Distributed Concurrency (ThreadPools)", "Playwright CDP Automation", "Automated Workflows", "Git / GitHub Versioning"]
     },
     {
       "id": "06",
@@ -76,10 +76,10 @@
   ],
   "experience_highlights": [
     {
-      "role": "AI Automation Engineer & Digital Publisher",
+      "role": "Lead AI Systems Architect & Founder",
       "company": "MediaUpscale LLC / Independent Projects",
       "period": "Ongoing",
-      "summary": "Architected generative content engines and scaled international social media networks reaching over 5M followers."
+      "summary": "Architected Omni-Engine (scaling to 84.8M+ organic reach and < $0.002 token unit economics) and developed the Aiwake autonomous multi-agent dialectic runtime."
     },
     {
       "role": "Founder, Director & Tech Lead",

@@ -3,8 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import profileData from "@/data/profile.json";
 
-const { email, linkedin } = profileData.contact;
-const GITHUB_URL = "https://github.com/diogolean";
+const { email, linkedin, github } = profileData.contact;
 
 async function copyEmail() {
   try {
@@ -79,7 +78,7 @@ export default function LetsConnect() {
 
       <nav aria-label="External profiles" className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2">
         {[
-          { label: "GitHub", href: GITHUB_URL },
+          { label: "GitHub", href: github },
           { label: "LinkedIn", href: linkedin },
         ].map((link) => (
           <a
