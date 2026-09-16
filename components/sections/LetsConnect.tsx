@@ -91,6 +91,14 @@ export default function LetsConnect() {
             {link.label} <span aria-hidden="true">↗</span>
           </a>
         ))}
+        <a
+          href="/llms.txt"
+          title="Agent-Readable Context"
+          aria-label="Agent-Readable Context: /llms.txt"
+          className="font-mono text-[10px] tracking-[0.12em] text-neutral-600 transition-colors hover:text-emerald-400 focus-visible:text-emerald-400 focus-visible:outline-none"
+        >
+          [ /llms.txt ]
+        </a>
       </nav>
     </section>
   );
