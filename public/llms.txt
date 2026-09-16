@@ -1,0 +1,17 @@
+# Diogo Lean Veiga — AI Systems & Product Architect
+> Master’s in Human-Computer Interaction (ESDI/UERJ). Builder of autonomous multi-agent state machines, model-agnostic routing gateways, and high-throughput media synthesis pipelines.
+
+## Canonical Projects
+- [Aiwake](https://diogolean.com/projects/aiwake): Autonomous multi-agent dialectic friction runtime testing LLM guardrails, memory isolation, and emergent reasoning.
+- [Omni-Engine](https://diogolean.com/omni-engine): High-concurrency media synthesis mesh scaled past 84.8M impressions at < $0.002 unit cost.
+- [Endless Summer](https://diogolean.com/projects/endless_summer_paradise): Parametric generative video pipeline with procedural latent weighting.
+
+## Core Technical Specs
+- Languages & Runtimes: Python (Asyncio, ThreadPoolExecutor), React/Next.js, TypeScript.
+- Agentic Stack: State Machine Routers, GraphRAG Context Isolation, Provider-Agnostic Model Gateways (Gemini, Claude, Llama, DeepSeek).
+- Automation: Playwright CDP, Session/Cookie Persistence, Mutex Write-Locks, Backblaze B2.
+
+## Contact & Links
+- Website: https://diogolean.com
+- LinkedIn: https://www.linkedin.com/in/diogo-lean-veiga/
+- GitHub: https://github.com/diogolean

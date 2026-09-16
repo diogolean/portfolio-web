@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import {
@@ -25,6 +26,41 @@ export const dynamic = "force-dynamic";
 
 interface ProjectPageProps {
   params: Promise<{ slug: string }>;
+}
+
+export async function generateMetadata({ params }: ProjectPageProps): Promise<Metadata> {
+  const { slug } = await params;
+  const project = await getProjectBySlug(slug);
+  if (!project) return {};
+
+  const canonicalPath = `/projects/${project.meta.slug}`;
+  return {
+    title: `${project.meta.title} | Diogo Lean Veiga`,
+    description: project.meta.summary,
+    alternates: { canonical: canonicalPath },
+    openGraph: {
+      type: "website",
+      locale: "en_US",
+      url: canonicalPath,
+      siteName: "Diogo Lean Veiga - Systems Architecture",
+      title: `${project.meta.title} | Diogo Lean Veiga`,
+      description: project.meta.summary,
+      images: [
+        {
+          url: "/og-preview.png",
+          width: 1200,
+          height: 630,
+          alt: "Omni-Engine hexagonal distributed systems topology",
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${project.meta.title} | Diogo Lean Veiga`,
+      description: project.meta.summary,
+      images: ["/og-preview.png"],
+    },
+  };
 }
 
 export default async function ProjectPage({ params }: ProjectPageProps) {
