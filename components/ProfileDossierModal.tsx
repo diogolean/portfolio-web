@@ -13,7 +13,6 @@ interface ProfileDossierModalProps {
 }
 
 const CONTACT_LINKS = [
-  { key: "portfolio", label: "Portfolio", href: (profile: UserProfile) => profile.contact.portfolio },
   { key: "github", label: "GitHub", href: (profile: UserProfile) => profile.contact.github },
   { key: "linkedin", label: "LinkedIn", href: (profile: UserProfile) => profile.contact.linkedin },
   { key: "email", label: "Email", href: (profile: UserProfile) => `mailto:${profile.contact.email}` },

@@ -133,7 +133,6 @@ export interface GlobalTimeline {
 
 export interface ProfileContact {
   email: string;
-  portfolio: string;
   github: string;
   linkedin: string;
 }
