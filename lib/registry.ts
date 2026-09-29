@@ -231,7 +231,14 @@ export const PROJECT_CAROUSEL_IMAGES: Record<string, readonly string[]> = {
 type ProjectB2VideoEntry = string | readonly string[];
 
 export const PROJECT_B2_VIDEOS: Record<string, ProjectB2VideoEntry> = {
-  ancient_knowledge: `${B2_PUBLIC_BASE}/reel_this_geode_hides_a_secret_that_d_v01.mp4`,
+  ancient_knowledge: [
+    `${B2_PUBLIC_BASE}/reel_nazca_lines__who_saw_these_from__v02.mp4`,
+    `${B2_PUBLIC_BASE}/reel_did_geology_expose_atlantis_s_tr_v10.mp4`,
+    `${B2_PUBLIC_BASE}/reel_sanskrit__forgotten_blueprints_f_v09.mp4`,
+    `${B2_PUBLIC_BASE}/reel_sumer_reveals__who_taught_humani_v08.mp4`,
+    `${B2_PUBLIC_BASE}/reel_alexandria__what_advanced_knowle_v07.mp4`,
+    `${B2_PUBLIC_BASE}/reel_peru_s_ancient_skulls__do_they_r_v06.mp4`,
+  ],
   master_mei: [
     `${B2_PUBLIC_BASE}/reel_are_you_still_chained__watching__v01.mp4`,
     `${B2_PUBLIC_BASE}/reel_does_fleeting_pleasure_secretly__v01.mp4`,
