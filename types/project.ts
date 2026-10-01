@@ -27,6 +27,7 @@ export interface PipelineNode {
   latency?: string;
   cardImage?: string;
   storefrontUrl?: string;
+  metrics?: string[];
 }
 
 export interface ProjectPipeline {

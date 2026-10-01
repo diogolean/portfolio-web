@@ -197,6 +197,7 @@ export const PROJECT_MEDIA_KIND: Record<string, ProjectMediaKind> = {};
  * Do not overwrite these with carousel stills.
  */
 export const PROJECT_COVER_IMAGES: Record<string, string> = {
+  ancient_knowledge: "/showcase/images/ancient_knowledge/cover.webp",
   anna_protocol: "/showcase/images/anna_protocol/cover.webp",
   master_mei: "/showcase/images/master_mei/cover.webp",
   endless_summer_paradise: "/showcase/images/endless_summer_paradise/cover.webp",

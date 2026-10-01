@@ -72,8 +72,10 @@ function toPipelineNode(
   index: number
 ): PipelineNode {
   const ioContract = splitContract(node.contract);
-  const architecture = uniqueTags(node.technologies);
-  const { primary, secondary } = classifyArchitectureTags(architecture, node.kind);
+  const architecture = uniqueTags(node.stackLabels ?? node.technologies);
+  const classified = classifyArchitectureTags(architecture, node.kind);
+  const primary = node.stackLabels?.slice(0, 1) ?? classified.primary;
+  const secondary = node.stackLabels?.slice(1) ?? classified.secondary;
   return {
     id: node.id,
     title: node.title,
@@ -81,7 +83,8 @@ function toPipelineNode(
     description: node.summary,
     architecture,
     problemSolved: node.responsibility,
-    engineeredOutcome: `${ioContract.output} · ${node.latency}`,
+    engineeredOutcome: node.outcome ?? `${ioContract.output} · ${node.latency}`,
+    ...(node.metrics?.length ? { metrics: node.metrics } : {}),
     ioContract,
     tags: architecture,
     primaryTags: primary,

@@ -2,6 +2,7 @@
 
 import { motion, useMotionValue } from "framer-motion";
 import type { PipelineNode } from "@/types/project";
+import EngineMetricBadges from "./EngineMetricBadges";
 import { useT } from "./LanguageProvider";
 import SpineJunction from "./SpineJunction";
 
@@ -99,6 +100,11 @@ export default function HexagonNodeCard({
               <p className="font-mono text-xs leading-5 text-emerald-100/70">
                 {node.engineeredOutcome}
               </p>
+              {node.metrics?.length ? (
+                <div className="mt-3">
+                  <EngineMetricBadges metrics={node.metrics} />
+                </div>
+              ) : null}
             </DetailBlock>
             {node.cardImage ? (
               <div className="overflow-hidden border border-emerald-500/20 bg-black/40">

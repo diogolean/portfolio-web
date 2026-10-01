@@ -3,6 +3,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { AIWAKE_ANIME_CLIPS, aiwakeAnimeUrl } from "@/lib/aiwake-showcase";
 import type { ProjectMediaAsset } from "@/lib/media-discovery";
 import type { ProjectMediaKind } from "@/lib/types";
 import type { PipelineNode } from "@/types/project";
@@ -33,7 +34,16 @@ export default function Interactive916Player({
   const videoRef = useRef<HTMLVideoElement>(null);
   const slideIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const slideTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isAiwake = slug === "aiwake";
+  const [playerMode, setPlayerMode] = useState<"animation" | "terminal">("animation");
   const videos = assets.filter((asset) => asset.kind === "video").slice(0, 6);
+  const animationVideos: ProjectMediaAsset[] = AIWAKE_ANIME_CLIPS.map((clip) => ({
+    kind: "video",
+    url: aiwakeAnimeUrl(clip.filename),
+    filename: clip.filename,
+    source: "external",
+  }));
+  const sourceVideos = isAiwake && playerMode === "animation" ? animationVideos : videos;
   const stills = assets.filter((asset) => asset.kind === "image").slice(0, 18);
   const isCarousel =
     mediaKind === "carousel" || mediaKind === "image" || (videos.length === 0 && stills.length > 0);
@@ -50,7 +60,7 @@ export default function Interactive916Player({
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [cinemaPortal, setCinemaPortal] = useState(false);
   const poster = stills[0] ?? assets.find((asset) => asset.kind === "image");
-  const availableVideos = videos.filter((asset) => !failedAssetUrls.has(asset.url));
+  const availableVideos = sourceVideos.filter((asset) => !failedAssetUrls.has(asset.url));
   const filteredAssets = isCarousel
     ? stills
     : assetFilter === "video"
@@ -81,9 +91,17 @@ export default function Interactive916Player({
     setFailedAssetUrls(new Set());
     setAssetIndex(0);
     setAssetFilter(isCarousel ? "image" : "all");
+    setPlayerMode("animation");
     setReady(false);
     setCurrentTime(0);
   }, [slug, isCarousel]);
+
+  useEffect(() => {
+    setAssetIndex(0);
+    setReady(false);
+    setCurrentTime(0);
+    setPlaying(true);
+  }, [playerMode]);
 
   useEffect(() => {
     setReady(false);
@@ -180,6 +198,7 @@ export default function Interactive916Player({
     if (!video) return;
     video.volume = clampVolume(muted ? 0 : 0.3);
     setDuration(video.duration || 0);
+    if (isAiwake && playerMode === "animation") return;
     if (activeNode.videoTimestamp != null && Number.isFinite(video.duration)) {
       video.currentTime = Math.min(activeNode.videoTimestamp, Math.max(0, video.duration - 0.1));
     }
@@ -229,10 +248,50 @@ export default function Interactive916Player({
   const mountStage = (node: React.ReactNode) =>
     cinemaPortal && typeof document !== "undefined" ? createPortal(node, document.body) : node;
 
+  const activeClip =
+    isAiwake && playerMode === "animation"
+      ? AIWAKE_ANIME_CLIPS[assetIndex % AIWAKE_ANIME_CLIPS.length]
+      : null;
+
   return (
+    <div className="mx-auto w-full max-w-[340px]">
+      {isAiwake && (
+        <div
+          role="tablist"
+          aria-label="Aiwake player mode"
+          className="mb-3 grid grid-cols-2 rounded-full border border-white/10 bg-zinc-950/80 p-1 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.04)]"
+        >
+          {(
+            [
+              ["animation", "🎬 2D Parametric Anime"],
+              ["terminal", "📟 Classic Terminal"],
+            ] as const
+          ).map(([mode, label]) => {
+            const selected = playerMode === mode;
+            return (
+              <button
+                key={mode}
+                type="button"
+                role="tab"
+                aria-selected={selected}
+                onClick={() => setPlayerMode(mode)}
+                className={`rounded-full px-2 py-1.5 font-mono text-[9px] uppercase tracking-[0.08em] transition ${
+                  selected
+                    ? mode === "animation"
+                      ? "border border-[#00F0FF]/70 bg-[#00F0FF]/15 text-cyan-100 shadow-[0_0_18px_rgba(0,240,255,0.35)]"
+                      : "border border-[#00FF66]/70 bg-[#00FF66]/15 text-emerald-100 shadow-[0_0_18px_rgba(0,255,102,0.35)]"
+                    : "border border-transparent text-zinc-500 hover:text-zinc-300"
+                }`}
+              >
+                {label}
+              </button>
+            );
+          })}
+        </div>
+      )}
     <div
       ref={frameRef}
-      className="relative mx-auto w-full max-w-[340px] rounded-[2.6rem] border border-white/15 bg-white/[0.055] p-2.5 shadow-[0_45px_120px_rgba(0,0,0,0.7),inset_0_1px_0_rgba(255,255,255,0.14)] backdrop-blur-xl"
+      className="relative w-full rounded-[2.6rem] border border-white/15 bg-white/[0.055] p-2.5 shadow-[0_45px_120px_rgba(0,0,0,0.7),inset_0_1px_0_rgba(255,255,255,0.14)] backdrop-blur-xl"
     >
       <div className="absolute left-1/2 top-4 z-30 h-5 w-20 -translate-x-1/2 rounded-full border border-white/5 bg-black/95" />
       {cinemaPortal ? <div className="aspect-[9/16] rounded-[2rem] bg-black" aria-hidden /> : null}
@@ -344,9 +403,11 @@ export default function Interactive916Player({
               className="mb-3"
             >
               <p className="font-mono text-[9px] uppercase tracking-[0.16em] text-emerald-400">
-                {activeNode.category} / {activeNode.id}
+                {activeClip ? activeClip.matchup : `${activeNode.category} / ${activeNode.id}`}
               </p>
-              <p className="mt-1 text-sm font-medium text-white">{activeNode.title}</p>
+              <p className="mt-1 text-sm font-medium text-white">
+                {activeClip?.title ?? activeNode.title}
+              </p>
             </motion.div>
           )}
 
@@ -437,7 +498,11 @@ export default function Interactive916Player({
                 key={asset.url}
                 type="button"
                 onClick={() => setAssetIndex(index)}
-                aria-label={`Show ${asset.filename}`}
+                aria-label={`Show ${
+                  isAiwake && playerMode === "animation"
+                    ? AIWAKE_ANIME_CLIPS[index]?.title ?? asset.filename
+                    : asset.filename
+                }`}
                 className={`h-1 flex-1 transition ${
                   index === assetIndex % Math.max(filteredAssets.length, 1) ? "bg-emerald-400" : "bg-zinc-700"
                 }`}
@@ -457,8 +522,10 @@ export default function Interactive916Player({
         <div className="mt-2 flex justify-center gap-3 font-mono text-[9px] text-zinc-500">
           {isCarousel ? (
             <span className="text-emerald-300">ARTWORK ({stills.length})</span>
-          ) : stills.length === 0 ? (
-            <span className="text-emerald-300">VIDEOS ({videos.length})</span>
+          ) : stills.length === 0 || (isAiwake && playerMode === "animation") ? (
+            <span className={playerMode === "animation" && isAiwake ? "text-cyan-300" : "text-emerald-300"}>
+              {isAiwake && playerMode === "animation" ? "ANIME" : "VIDEOS"} ({availableVideos.length})
+            </span>
           ) : (
             <>
               <button
@@ -466,7 +533,7 @@ export default function Interactive916Player({
                 onClick={() => setAssetFilter("video")}
                 className={assetFilter === "video" ? "text-emerald-300" : "hover:text-zinc-300"}
               >
-                VIDEOS ({videos.length})
+                VIDEOS ({availableVideos.length})
               </button>
               <span>|</span>
               <button
@@ -480,6 +547,7 @@ export default function Interactive916Player({
           )}
         </div>
       </div>
+    </div>
     </div>
   );
 }

@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import type { PipelineNode } from "@/types/project";
+import EngineMetricBadges from "./EngineMetricBadges";
 import { useT } from "./LanguageProvider";
 
 interface NodeDeepDiveModalProps {
@@ -71,6 +72,11 @@ export default function NodeDeepDiveModal({ node, onClose }: NodeDeepDiveModalPr
               <h2 id="node-deep-dive-title" className="text-3xl font-semibold text-white">
                 {node.title}
               </h2>
+              {node.metrics?.length ? (
+                <div className="mt-4">
+                  <EngineMetricBadges metrics={node.metrics} />
+                </div>
+              ) : null}
               {node.cardImage ? (
                 <div className="mt-5 overflow-hidden border border-emerald-500/25">
                   {/* eslint-disable-next-line @next/next/no-img-element */}

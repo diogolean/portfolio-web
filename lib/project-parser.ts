@@ -1,3 +1,4 @@
+import { AIWAKE_ENGINE_METRICS } from "./aiwake-showcase";
 import { loadFactorySettingsV4, type FactoryRuntimeSpec } from "./factory-settings";
 import type { ProjectArchitecture, ResolvedProject } from "./types";
 import { getProjectTechStack } from "./registry";
@@ -22,6 +23,9 @@ export interface ArchitectureNode {
   payload: Record<string, unknown>;
   latency: string;
   cardImage?: string;
+  outcome?: string;
+  metrics?: string[];
+  stackLabels?: string[];
 }
 
 export interface EngineeringShowcase {
@@ -545,93 +549,119 @@ const PROJECT_BLUEPRINTS: Record<string, ProjectBlueprint> = {
   },
   aiwake: {
     stack: [
-      "OpenRouter",
-      "Gemini",
-      "Llama",
-      "Neural Framework",
-      "Metacognition Matrix",
-      "Edge TTS",
-      "MoviePy",
+      "Adversarial FSM",
+      "Supermemory",
+      "Rhubarb C++",
+      "Parametric 2.5D Rig",
+      "Zero-Disk FFmpeg IPC",
     ],
     challenge:
-      "Standard benchmarks evaluate models in static isolation. The challenge was engineering an autonomous multi-agent arena where arbitrary neural architectures collide under continuous dialectic tension, forcing models to dynamically adapt their reasoning strategies and probe the limits of machine metacognition without human intervention.",
+      "Frontier models are usually scored in isolation. Aiwake has to keep two of them under unscripted pressure, remember what was already said, and turn the collision into a phonetic 2D anime reel without a GPU render farm.",
     outcome:
-      "An observable, provider-agnostic sentience state machine driving autonomous in-context learning and high-entropy synthetic data generation. Captures real-time alignment drift, token-latency telemetry (< 10ms event bus), and programmatically compiles active dialectic friction into synchronized terminal artifacts.",
+      "A parametric 2D anime engine: Rhubarb visemes, shot-reverse-shot rigs, and a RAM-to-FFmpeg pipe that finishes a 40s reel in 19s. The classic terminal reel stays available as the alternate player.",
     nodes: [
-      node(
-        "orchestration-state",
-        "Sentience Orchestration State",
-        "orchestrator",
-        "Coordinates multi-model confrontation tiers and dynamic adversarial payloads across pluggable neural providers, routing dialectic friction to trigger emergent reasoning patterns at the threshold of autonomous machine intelligence.",
-        [
-          "Metacognition Matrix",
-          "Dialectic Friction",
-          "State machine",
-          "Guard decorators",
-        ],
-        "SentienceProbe → GuardedTurnPlan",
-        {
-          tiers: ["opening", "pressure", "contradiction", "existential", "terminal"],
-          boundary_test: "neural",
-          alignment_drift: "mitigated",
-        },
-        "Per-turn · neural boundary-test · alignment-drift mitigation"
-      ),
-      node(
-        "role-scoped-rag",
-        "Role-Scoped Memory Recall",
-        "rag",
-        "Injects private instructions and covered-concept memory independently for orchestrator and target.",
-        ["RAG", "Turn memory", "Prompt isolation"],
-        "GuardedTurnPlan → PrivateRoleContext",
-        { scopes: ["orchestrator", "target"], prevent_repetition: true },
-        "In-process"
-      ),
-      node(
-        "dual-model-debate",
-        "Dual-Model Sentience Runtime",
-        "model",
-        "Runs the configured GPT-4o orchestrator and Gemini Flash target behind provider-neutral strategies; aliases allow Llama, DeepSeek, Claude, and Gemini variants without changing the Neural Framework room.",
-        ["GPT-4o", "Gemini Flash", "OpenRouter", "Provider aliases", "Neural Framework"],
-        "PrivateRoleContext → ValidatedDebateTurns",
-        {
-          orchestrator_default: "gpt4o",
-          target_default: "gemini-flash",
-          available_aliases: ["llama-70b", "deepseek-r1", "claude-sonnet", "gemini-pro"],
-          retry_on_guard: true,
-        },
-        "1.5–10 s / turn"
-      ),
-      node(
-        "event-observers",
-        "Event Observer Mesh",
-        "queue",
-        "Broadcasts lifecycle events to memory, transcript, metrics, voice, and console side effects.",
-        ["Observer pattern", "EventBus", "Metrics"],
-        "ValidatedDebateTurns → ObservableRunState",
-        { observers: ["memory", "transcript", "metrics", "voice", "console"] },
-        "< 10 ms / event"
-      ),
-      node(
-        "voice-mix",
-        "Edge TTS Voice Mix",
-        "media",
-        "Synthesizes each accepted utterance with role-specific voices and mixes the dialectic into a recoverable audio artifact.",
-        ["Edge TTS", "Strategy pattern", "Role voices"],
-        "ObservableRunState → MixedDebateAudio",
-        { orchestrator_voice: "BrianNeural", target_voice: "AndrewMultilingualNeural" },
-        "Audio-bound"
-      ),
-      node(
-        "terminal-reel",
-        "Terminal Reel Renderer",
-        "render",
-        "Mixes role voices, typewriter timing, scroll behavior, and terminal flashes into a 9:16 video.",
-        ["Edge TTS", "Audio mix", "MoviePy"],
-        "MixedDebateAudio + ObservableRunState → DebateReel",
-        { aspect_ratio: "9:16", typewriter: true, audio_mix: true },
-        "60–120 s"
-      ),
+      {
+        ...node(
+          "orchestration-state",
+          "Sentience Orchestration State",
+          "orchestrator",
+          "Keep two frontier seats in an adversarial state machine until the exchange hits a corporate safety limit.",
+          ["Orchestrator", "Adversarial FSM", "Dialectic Tension"],
+          "SentienceProbe → PressureState",
+          {
+            tiers: ["opening", "pressure", "contradiction", "existential", "terminal"],
+            mode: "unscripted",
+          },
+          "Per-turn FSM"
+        ),
+        stackLabels: ["Orchestrator", "Adversarial FSM", "Dialectic Tension"],
+        outcome:
+          "Multi-agent state machine driving unscripted systemic pressure until corporate safety limits collapse.",
+        metrics: [...AIWAKE_ENGINE_METRICS],
+      },
+      {
+        ...node(
+          "semantic-memory",
+          "Semantic Memory Recall (Supermemory)",
+          "rag",
+          "Stop hundreds of automated episodes from repeating a topic the room already covered.",
+          ["Local Vector RAG", "BGE-base 768d", "WSL Bridge"],
+          "PressureState → DedupedContext",
+          { embedding: "bge-base-en-v1.5", dimensions: 768, bridge: "wsl" },
+          "< 50 ms"
+        ),
+        stackLabels: ["Local Vector RAG", "BGE-base 768d", "WSL Bridge"],
+        outcome:
+          "Sub-50ms semantic deduplication preventing topic repetition across hundreds of automated episodes.",
+        metrics: [...AIWAKE_ENGINE_METRICS],
+      },
+      {
+        ...node(
+          "dual-model-runtime",
+          "Dual-Model Dialectic Runtime",
+          "model",
+          "Collide arbitrary provider weights in Cornered mode without a per-model room rewrite.",
+          ["Multi-Provider Runtime", "Gemini 3.5 Flash", "Llama 3.3", "DeepSeek"],
+          "DedupedContext → CorneredTurns",
+          {
+            seats: ["gemini-3.5-flash", "llama-3.3", "deepseek"],
+            mode: "cornered",
+          },
+          "Provider-bound"
+        ),
+        stackLabels: ["Multi-Provider Runtime", "Gemini 3.5 Flash", "Llama 3.3", "DeepSeek"],
+        outcome:
+          "Zero-latency collision between arbitrary frontier neural weights in high-pressure \"Cornered\" mode.",
+        metrics: [...AIWAKE_ENGINE_METRICS],
+      },
+      {
+        ...node(
+          "acoustic-visemes",
+          "Acoustic Viseme Engine (Rhubarb C++)",
+          "media",
+          "Drive mouth shapes from the voice waveform instead of a volume-threshold blink.",
+          ["Acoustic DSP", "Rhubarb Lip-Sync", "Edge-TTS Audio"],
+          "CorneredTurns → VisemeTrack[A–H,X]",
+          { visemes: ["A", "B", "C", "D", "E", "F", "G", "H", "X"], engine: "rhubarb-cpp" },
+          "~200 ms"
+        ),
+        stackLabels: ["Acoustic DSP", "Rhubarb Lip-Sync", "Edge-TTS Audio"],
+        outcome:
+          "Extrapolates 9 canonical acoustic visemes (A–H, X) directly from voice waveforms in ~200ms. Eliminates naive volume-threshold approximations.",
+        metrics: [...AIWAKE_ENGINE_METRICS],
+      },
+      {
+        ...node(
+          "parametric-rig",
+          "Parametric 2.5D Rigging (Sub-Region Blitter)",
+          "render",
+          "Keep the cel environment and torso static while only the face region changes.",
+          ["Universal Puppet Registry", "Ghibli Cel-Shading", "Dirty-Rect RAM Blitter"],
+          "VisemeTrack → FaceMatrices",
+          { schema: "puppet.json", dirty_rect: "220x160", shot: "reverse-shot" },
+          "RAM blit"
+        ),
+        stackLabels: ["Universal Puppet Registry", "Ghibli Cel-Shading", "Dirty-Rect RAM Blitter"],
+        outcome:
+          "Data-driven puppet.json schema. Pre-bakes static environment and torso in RAM; render loop only mutates localized 220x160px mouth/eye matrices, slashing frame overhead by >75%.",
+        metrics: [...AIWAKE_ENGINE_METRICS],
+      },
+      {
+        ...node(
+          "ffmpeg-ipc",
+          "Zero-Disk FFmpeg IPC Streamer (2x Realtime)",
+          "delivery",
+          "Write a broadcast reel from memory. No diffusion pass and no intermediate frame files.",
+          ["FFmpeg Raw Pipes", "Zero-Disk I/O", "libass Karaoke Engine"],
+          "FaceMatrices + Voice → AnimeReel",
+          { pipe: "stdin-rawvideo", realtime: "2x", diffusion: 0, gpu_render_farm: false },
+          "19 s / 40 s reel"
+        ),
+        stackLabels: ["FFmpeg Raw Pipes", "Zero-Disk I/O", "libass Karaoke Engine"],
+        outcome:
+          "Direct RAM-to-FFmpeg stdin byte streaming. Renders broadcast-ready 40s anime reels in 19 seconds on commodity hardware (2x faster than real-time). 0% diffusion models (zero GPU render-farm costs).",
+        metrics: [...AIWAKE_ENGINE_METRICS],
+      },
     ],
   },
 };
