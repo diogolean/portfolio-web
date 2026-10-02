@@ -9,6 +9,24 @@ import {
 } from "framer-motion";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 
+function beamPosition(scrollValue: number, inputs: number[], outputs: number[]) {
+  if (!outputs.length) return 0;
+  const last = outputs.length - 1;
+  if (scrollValue >= inputs[last]) return outputs[last];
+
+  let index = 0;
+  for (let cursor = 1; cursor < inputs.length; cursor++) {
+    if (scrollValue >= inputs[cursor]) index = cursor;
+    else break;
+  }
+
+  const next = Math.min(last, index + 1);
+  const span = inputs[next] - inputs[index];
+  if (next === index || span <= 0.0001) return outputs[next];
+  const t = Math.min(1, Math.max(0, (scrollValue - inputs[index]) / span));
+  return outputs[index] + (outputs[next] - outputs[index]) * t;
+}
+
 export const SPINE_SPRING = {
   stiffness: 140,
   damping: 24,
@@ -54,12 +72,7 @@ export default function TimelineSpine({
         nodeAnchors.current = outputs;
       }
 
-      let activeStop = 0;
-      for (let index = 1; index < inputs.length; index++) {
-        if (scrollValue >= inputs[index]) activeStop = index;
-        else break;
-      }
-      return outputs[activeStop] ?? outputs[0];
+      return beamPosition(scrollValue, inputs, outputs);
     }
   );
   const easedBeamProgress = useSpring(beamTarget, SPINE_SPRING);
@@ -72,7 +85,7 @@ export default function TimelineSpine({
     (beamLength: number) => {
       let reachedVisualNode = 0;
       for (let index = 1; index < nodeAnchors.current.length; index++) {
-        if (beamLength >= nodeAnchors.current[index]) reachedVisualNode = index;
+        if (beamLength + 0.004 >= nodeAnchors.current[index]) reachedVisualNode = index;
         else break;
       }
       const stageIndex = reachedVisualNode - 1;
@@ -130,9 +143,11 @@ export default function TimelineSpine({
           Math.max(0, (activationScrollY - storylineStartY) / scrollRange)
         );
       });
-      scrollStops.current = [0, ...measuredStops].map((stop, index, stops) =>
-        index === 0 ? stop : Math.max(stop, stops[index - 1] + 0.0001)
-      );
+      const orderedStops = [0, ...measuredStops];
+      scrollStops.current = orderedStops.map((stop, index) => {
+        if (index === 0) return 0;
+        return Math.min(1, Math.max(stop, orderedStops[index - 1] + 0.0001));
+      });
 
       const nextHeight = Math.max(1, Math.round(axisRect.height));
       setAxisHeight(nextHeight);
