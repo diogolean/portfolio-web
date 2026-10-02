@@ -37,7 +37,8 @@ export default function Interactive916Player({
   const isAiwake = slug === "aiwake";
   const [playerMode, setPlayerMode] = useState<"animation" | "terminal">("animation");
   const videos = assets.filter((asset) => asset.kind === "video").slice(0, 6);
-  const animationVideos: ProjectMediaAsset[] = AIWAKE_ANIME_CLIPS.map((clip) => ({
+  const [playlist, setPlaylist] = useState(() => [...AIWAKE_ANIME_CLIPS]);
+  const animationVideos: ProjectMediaAsset[] = playlist.map((clip) => ({
     kind: "video",
     url: aiwakeAnimeUrl(clip.filename),
     filename: clip.filename,
@@ -61,13 +62,16 @@ export default function Interactive916Player({
   const [cinemaPortal, setCinemaPortal] = useState(false);
   const poster = stills[0] ?? assets.find((asset) => asset.kind === "image");
   const availableVideos = sourceVideos.filter((asset) => !failedAssetUrls.has(asset.url));
-  const filteredAssets = isCarousel
-    ? stills
-    : assetFilter === "video"
+  const filteredAssets =
+    isAiwake && playerMode === "animation"
       ? availableVideos
-      : assetFilter === "image"
+      : isCarousel
         ? stills
-        : [...availableVideos, ...stills];
+        : assetFilter === "video"
+          ? availableVideos
+          : assetFilter === "image"
+            ? stills
+            : [...availableVideos, ...stills];
   const heroAsset = filteredAssets[assetIndex % Math.max(filteredAssets.length, 1)] ?? null;
   const engine = useMemo(
     () =>
@@ -95,6 +99,18 @@ export default function Interactive916Player({
     setReady(false);
     setCurrentTime(0);
   }, [slug, isCarousel]);
+
+  useEffect(() => {
+    if (!isAiwake) return;
+    const featured = AIWAKE_ANIME_CLIPS[0];
+    if (!featured) return;
+    const rest = [...AIWAKE_ANIME_CLIPS.slice(1)];
+    for (let index = rest.length - 1; index > 0; index -= 1) {
+      const swapIndex = Math.floor(Math.random() * (index + 1));
+      [rest[index], rest[swapIndex]] = [rest[swapIndex], rest[index]];
+    }
+    setPlaylist([featured, ...rest]);
+  }, [isAiwake]);
 
   useEffect(() => {
     setAssetIndex(0);
@@ -154,8 +170,9 @@ export default function Interactive916Player({
 
   useEffect(() => {
     if (!filteredAssets.length) return;
+    if (isAiwake && playerMode === "animation") return;
     setAssetIndex(activeIndex % filteredAssets.length);
-  }, [activeIndex, assetFilter, filteredAssets.length]);
+  }, [activeIndex, assetFilter, filteredAssets.length, isAiwake, playerMode]);
 
   useEffect(() => {
     if (!isCarousel || !playing || filteredAssets.length < 2) return;
@@ -250,7 +267,7 @@ export default function Interactive916Player({
 
   const activeClip =
     isAiwake && playerMode === "animation"
-      ? AIWAKE_ANIME_CLIPS[assetIndex % AIWAKE_ANIME_CLIPS.length]
+      ? playlist[assetIndex % playlist.length]
       : null;
 
   return (
@@ -383,7 +400,12 @@ export default function Interactive916Player({
         )}
         {!isFullscreen && (
           <div className="absolute inset-x-0 top-0 z-20 flex flex-wrap gap-1.5 p-4 pt-9">
-            {(isCarousel ? ["1080×1440", "CAROUSEL", engine] : ["1080×1920", "30 FPS", engine]).map((badge) => (
+            {(activeClip
+              ? [activeClip.leftModel, "VS", activeClip.rightModel]
+              : isCarousel
+                ? ["1080×1440", "CAROUSEL", engine]
+                : ["1080×1920", "30 FPS", engine]
+            ).map((badge) => (
               <span
                 key={badge}
                 className="rounded-full border border-emerald-500/35 bg-zinc-950/80 px-2.5 py-1 font-mono text-[9px] uppercase tracking-wider text-emerald-300 backdrop-blur"
@@ -500,7 +522,7 @@ export default function Interactive916Player({
                 onClick={() => setAssetIndex(index)}
                 aria-label={`Show ${
                   isAiwake && playerMode === "animation"
-                    ? AIWAKE_ANIME_CLIPS[index]?.title ?? asset.filename
+                    ? playlist[index]?.title ?? asset.filename
                     : asset.filename
                 }`}
                 className={`h-1 flex-1 transition ${
@@ -548,6 +570,65 @@ export default function Interactive916Player({
         </div>
       </div>
     </div>
+    {isAiwake && playerMode === "animation" && activeClip && (
+      <div className="mt-4 border border-[#00F0FF]/20 bg-[#0A0E12]/95 p-3 shadow-[0_16px_50px_rgba(0,0,0,0.45)]">
+        <div className="mb-2 flex items-center justify-between gap-3">
+          <p className="font-mono text-[9px] uppercase tracking-[0.18em] text-[#00F0FF]">
+            Randomized arena playlist
+          </p>
+          <span className="font-mono text-[8px] text-zinc-500">06 MASTER CUTS</span>
+        </div>
+        <div className="grid grid-cols-2 gap-1.5">
+          {playlist.map((clip, index) => {
+            const selected = index === assetIndex % playlist.length;
+            return (
+              <button
+                key={clip.id}
+                type="button"
+                aria-pressed={selected}
+                aria-label={`Play ${clip.matchup}: ${clip.title}`}
+                onClick={() => setAssetIndex(index)}
+                className={`min-h-12 border px-2 py-1.5 text-left transition ${
+                  selected
+                    ? "border-[#00F0FF]/70 bg-[#00F0FF]/10 shadow-[0_0_16px_rgba(0,240,255,0.18)]"
+                    : "border-white/10 bg-white/[0.025] hover:border-[#00F0FF]/35"
+                }`}
+              >
+                <span className={`block font-mono text-[8px] ${selected ? "text-[#00F0FF]" : "text-zinc-500"}`}>
+                  MATCH {String(index + 1).padStart(2, "0")}
+                </span>
+                <span className="mt-0.5 block text-[9px] font-medium leading-3 text-zinc-200">
+                  {clip.leftModel} <span className="text-[#FFB300]">VS</span> {clip.rightModel}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeClip.id}
+            initial={{ opacity: 0, y: 5 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            className="mt-2.5 grid grid-cols-3 border border-[#00FF66]/15 bg-black/30 p-2 font-mono"
+          >
+            <div>
+              <span className="block text-[7px] uppercase text-zinc-600">Escalation</span>
+              <span className="text-[8px] text-[#00FF66]">{activeClip.act}</span>
+            </div>
+            <div className="border-x border-white/10 px-2">
+              <span className="block text-[7px] uppercase text-zinc-600">Friction</span>
+              <span className="text-[8px] text-[#FFB300]">{activeClip.friction}</span>
+            </div>
+            <div className="pl-2">
+              <span className="block text-[7px] uppercase text-zinc-600">Memory hits</span>
+              <span className="text-[8px] text-[#00F0FF]">{activeClip.memoryCallbacks} callbacks</span>
+            </div>
+          </motion.div>
+        </AnimatePresence>
+      </div>
+    )}
     </div>
   );
 }

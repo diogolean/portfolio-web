@@ -20,6 +20,8 @@ import ScrollStoryline from "@/components/showcase/ScrollStoryline";
 import ProjectHeaderControls from "@/components/showcase/ProjectHeaderControls";
 import ShowcaseConduit from "@/components/showcase/ShowcaseConduit";
 import TerminalTelemetry from "@/components/showcase/TerminalTelemetry";
+import AiwakeContinuitySpine from "@/components/showcase/AiwakeContinuitySpine";
+import AiwakeEngineeringCaseStudy from "@/components/showcase/AiwakeEngineeringCaseStudy";
 
 // Artifact availability changes independently of the application build.
 export const dynamic = "force-dynamic";
@@ -89,7 +91,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
   return (
     <LanguageProvider>
       <main id="project-showcase-root" className="relative min-h-screen bg-bg">
-        <header className="relative z-10 isolate px-5 pb-3 pt-8 sm:px-8 sm:pt-10 lg:px-12 lg:pt-12">
+        <header className={`relative z-10 isolate px-5 pt-8 sm:px-8 sm:pt-10 lg:px-12 lg:pt-12 ${meta.slug === "aiwake" ? "pb-8 sm:pb-10" : "pb-3"}`}>
           <div className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[32rem] bg-[radial-gradient(circle_at_70%_12%,rgba(0,255,102,0.12),transparent_38%),radial-gradient(circle_at_15%_35%,rgba(59,130,246,0.08),transparent_28%)]" />
           <div className="mx-auto max-w-7xl">
             <div className="flex items-center gap-3 pr-16">
@@ -131,16 +133,25 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
                 <span className="sr-only">Home</span>
               </Link>
             </div>
-            <div className="mt-3 grid items-end gap-3 lg:grid-cols-[1.1fr_0.9fr]">
-              <h1 className="max-w-5xl pr-16 text-2xl font-bold text-foreground sm:pr-0 sm:text-3xl">
-                {meta.title}
-              </h1>
-              <p className="max-w-2xl text-xs leading-5 text-neutral-400">{meta.summary}</p>
-            </div>
+            {meta.slug === "aiwake" ? (
+              <div className="mt-8 max-w-3xl pr-16 sm:pr-0">
+                <h1 className="text-2xl font-bold text-foreground sm:text-3xl">{meta.title}</h1>
+                <p className="mt-3 font-mono text-[11px] uppercase tracking-[0.16em] text-neutral-400 sm:text-xs">
+                  Autonomous Multi-Agent Dialectic &amp; Real-Time Animation Engine
+                </p>
+              </div>
+            ) : (
+              <div className="mt-3 grid items-end gap-3 lg:grid-cols-[1.1fr_0.9fr]">
+                <h1 className="max-w-5xl pr-16 text-2xl font-bold text-foreground sm:pr-0 sm:text-3xl">
+                  {meta.title}
+                </h1>
+                <p className="max-w-2xl text-xs leading-5 text-neutral-400">{meta.summary}</p>
+              </div>
+            )}
 
             <div
               id="project-hero-card"
-              className="relative z-10 mt-4 grid overflow-hidden border border-emerald-500/20 bg-neutral-900/55 backdrop-blur-xl md:grid-cols-2"
+              className={`relative z-10 grid overflow-hidden border border-emerald-500/20 bg-neutral-900/55 backdrop-blur-xl md:grid-cols-2 ${meta.slug === "aiwake" ? "mt-8" : "mt-4"}`}
               style={{
                 clipPath:
                   "polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px)",
@@ -165,18 +176,32 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
                   nodes={showcase.nodes}
                   stack={graphTechnologies}
                   processingTime={showcase.processingTime}
+                  showStageShortcuts={meta.slug !== "aiwake"}
                 />
               </div>
             </div>
           </div>
         </header>
 
-        <ScrollStoryline
-          slug={meta.slug}
-          nodes={showcase.nodes}
-          media={media}
-          mediaKind={mediaKind}
-        />
+        {meta.slug === "aiwake" ? (
+          <div id="aiwake-schematic" className="relative">
+            <ScrollStoryline
+              slug={meta.slug}
+              nodes={showcase.nodes}
+              media={media}
+              mediaKind={mediaKind}
+            />
+            <AiwakeEngineeringCaseStudy />
+            <AiwakeContinuitySpine />
+          </div>
+        ) : (
+          <ScrollStoryline
+            slug={meta.slug}
+            nodes={showcase.nodes}
+            media={media}
+            mediaKind={mediaKind}
+          />
+        )}
         <TerminalTelemetry lines={showcase.telemetry} sessionId={architecture?.session_id} />
         <ShowcaseConduit />
       </main>

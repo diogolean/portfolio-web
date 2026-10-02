@@ -5,7 +5,7 @@ interface TerminalTelemetryProps {
 
 export default function TerminalTelemetry({ lines, sessionId }: TerminalTelemetryProps) {
   return (
-    <section className="px-5 pb-28 pt-10 sm:px-8 lg:px-12 lg:pb-36">
+    <section className="px-5 pb-12 pt-10 sm:px-8 md:pb-16 lg:px-12">
       <div className="mx-auto max-w-7xl">
         <details className="group overflow-hidden border border-emerald-500/20 bg-black/60 shadow-[0_22px_80px_rgba(0,0,0,0.35)] backdrop-blur-md [clip-path:polygon(12px_0,100%_0,100%_calc(100%-12px),calc(100%-12px)_100%,0_100%,0_12px)]">
           <summary className="flex cursor-pointer list-none items-center justify-between gap-5 px-5 py-4 transition hover:bg-emerald-500/[0.035] [&::-webkit-details-marker]:hidden">

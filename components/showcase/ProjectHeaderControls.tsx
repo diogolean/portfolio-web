@@ -11,6 +11,7 @@ interface ProjectHeaderControlsProps {
   nodes: PipelineNode[];
   stack: string[];
   processingTime: string;
+  showStageShortcuts?: boolean;
 }
 
 function matchingNode(technology: string, nodes: PipelineNode[]) {
@@ -33,6 +34,7 @@ export default function ProjectHeaderControls({
   nodes,
   stack,
   processingTime,
+  showStageShortcuts = true,
 }: ProjectHeaderControlsProps) {
   const [selectedNode, setSelectedNode] = useState<PipelineNode | null>(null);
   const translate = useT();
@@ -73,18 +75,20 @@ export default function ProjectHeaderControls({
         </div>
       </div>
 
-      <nav aria-label="Pipeline stage shortcuts" className="mt-3 flex flex-wrap gap-2">
-        {stageBadges.map(({ label, node, index }) => (
-          <button
-            key={node.id}
-            type="button"
-            onClick={() => scrollToNode(index)}
-            className="border border-zinc-700 px-2.5 py-1 font-mono text-[9px] tracking-[0.12em] text-zinc-400 transition hover:border-emerald-500/50 hover:text-emerald-300"
-          >
-            {String(index + 1).padStart(2, "0")} · {label}
-          </button>
-        ))}
-      </nav>
+      {showStageShortcuts && (
+        <nav aria-label="Pipeline stage shortcuts" className="mt-3 flex flex-wrap gap-2">
+          {stageBadges.map(({ label, node, index }) => (
+            <button
+              key={node.id}
+              type="button"
+              onClick={() => scrollToNode(index)}
+              className="border border-zinc-700 px-2.5 py-1 font-mono text-[9px] tracking-[0.12em] text-zinc-400 transition hover:border-emerald-500/50 hover:text-emerald-300"
+            >
+              {String(index + 1).padStart(2, "0")} · {label}
+            </button>
+          ))}
+        </nav>
+      )}
 
       <NodeDeepDiveModal node={selectedNode} onClose={() => setSelectedNode(null)} />
     </>
